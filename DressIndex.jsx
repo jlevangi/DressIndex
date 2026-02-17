@@ -1,0 +1,470 @@
+import { useState, useMemo, useEffect, useCallback } from "react";
+
+const DEFAULT_LAT = 28.3922;
+const DEFAULT_LNG = -81.5812;
+const DEFAULT_LOCATION = "Bay Lake, FL";
+
+function getWindMod(speed) {
+  if (speed <= 10) return 0;
+  if (speed <= 15) return -2;
+  if (speed <= 20) return -4;
+  return -6;
+}
+
+function getSkyMod(cloudCover) {
+  if (cloudCover < 0.3) return 0;
+  if (cloudCover < 0.7) return -1.5;
+  return -3;
+}
+
+function getSkyLabel(cloudCover) {
+  if (cloudCover < 0.3) return "Clear";
+  if (cloudCover < 0.7) return "Partly Cloudy";
+  return "Overcast";
+}
+
+function getPrecipMod(intensity) {
+  if (!intensity || intensity < 0.01) return 0;
+  if (intensity < 0.1) return -2;
+  return -4;
+}
+
+function getPrecipLabel(intensity) {
+  if (!intensity || intensity < 0.01) return "None";
+  if (intensity < 0.1) return "Drizzle";
+  return "Rain";
+}
+
+function getTimeMod(timestamp, sunsetTime) {
+  if (!sunsetTime) return 0;
+  const diff = (sunsetTime - timestamp) / 60;
+  if (diff <= 0) return -3;
+  if (diff <= 30) return -3;
+  if (diff <= 60) return -2;
+  const hour = new Date(timestamp * 1000).getHours();
+  if (hour >= 15 && hour < 16) return -1;
+  if (hour >= 10 && hour < 15) return 0;
+  if (hour < 10) return -1;
+  return -2;
+}
+
+function dewPointMod(dp) {
+  if (dp >= 65) return 3;
+  if (dp >= 60) return 2;
+  if (dp >= 55) return 1;
+  return 0;
+}
+
+function computeEffective(data, personalAdj, sunsetTime) {
+  const wMod = getWindMod(data.windSpeed || 0);
+  const sMod = getSkyMod(data.cloudCover || 0);
+  const pMod = getPrecipMod(data.precipIntensity);
+  const tMod = getTimeMod(data.time, sunsetTime);
+  const dMod = dewPointMod(data.dewPoint || 50);
+  const total = wMod + sMod + pMod + tMod + dMod + personalAdj;
+  return {
+    base: data.temperature,
+    effective: data.temperature + total,
+    mods: { wind: wMod, sky: sMod, precip: pMod, time: tMod, dewPt: dMod, personal: personalAdj },
+    total,
+  };
+}
+
+function getClothing(eff) {
+  let top, bottom, color;
+  if (eff >= 72) { top = "T-Shirt"; bottom = "Shorts"; color = "#22c55e"; }
+  else if (eff >= 66) { top = "Crew Neck"; bottom = "Shorts"; color = "#eab308"; }
+  else if (eff >= 58) { top = "Hoodie"; bottom = "Shorts"; color = "#f97316"; }
+  else { top = "Jacket"; bottom = "Pants"; color = "#ef4444"; }
+  return { top, bottom, color };
+}
+
+function formatHour(ts) {
+  return new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", hour12: true });
+}
+
+function HourCard({ data, personalAdj, sunsetTime, isNow }) {
+  const calc = computeEffective(data, personalAdj, sunsetTime);
+  const clothing = getClothing(calc.effective);
+  const isPast = data.time * 1000 < Date.now() && !isNow;
+
+  return (
+    <div style={{
+      minWidth: 110,
+      background: isNow ? "#1a1a1a" : "#111",
+      border: isNow ? "1px solid #f97316" : "1px solid #1a1a1a",
+      borderRadius: 8,
+      padding: "12px 10px",
+      opacity: isPast ? 0.4 : 1,
+      position: "relative",
+      flexShrink: 0,
+    }}>
+      {isNow && (
+        <div style={{
+          position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)",
+          background: "#f97316", color: "#000", fontSize: 9, fontWeight: 700,
+          padding: "1px 6px", borderRadius: 3, letterSpacing: 1,
+        }}>NOW</div>
+      )}
+      <div style={{ fontSize: 12, color: isNow ? "#f0f0f0" : "#888", fontWeight: 600, marginBottom: 8, textAlign: "center" }}>
+        {formatHour(data.time)}
+      </div>
+      <div style={{ textAlign: "center", marginBottom: 6 }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: "#e0e0e0" }}>{Math.round(data.temperature)}°</span>
+      </div>
+      <div style={{ fontSize: 10, color: "#555", textAlign: "center", marginBottom: 8, lineHeight: 1.4 }}>
+        {getSkyLabel(data.cloudCover)}<br />
+        Wind {Math.round(data.windSpeed)} mph<br />
+        DP {Math.round(data.dewPoint)}°
+        {data.precipIntensity > 0.01 && <><br />{getPrecipLabel(data.precipIntensity)}</>}
+      </div>
+      <div style={{ borderTop: "1px solid #222", paddingTop: 8, textAlign: "center" }}>
+        <div style={{ fontSize: 10, color: "#555", marginBottom: 2 }}>EFF {calc.effective.toFixed(0)}°F</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: clothing.color }}>{clothing.top}</div>
+        <div style={{ fontSize: 11, color: clothing.color, opacity: 0.7 }}>{clothing.bottom}</div>
+      </div>
+    </div>
+  );
+}
+
+function CurrentPanel({ data, personalAdj, sunsetTime }) {
+  const calc = computeEffective(data, personalAdj, sunsetTime);
+  const clothing = getClothing(calc.effective);
+  const modEntries = [
+    { label: "Wind", val: calc.mods.wind },
+    { label: "Sky", val: calc.mods.sky },
+    { label: "Precip", val: calc.mods.precip },
+    { label: "Time", val: calc.mods.time },
+    { label: "Dew Pt", val: calc.mods.dewPt },
+    { label: "Personal", val: calc.mods.personal },
+  ];
+
+  return (
+    <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 8, padding: 24, marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>
+            Right Now
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{ fontSize: 36, fontWeight: 700, color: "#f0f0f0" }}>{Math.round(data.temperature)}°F</span>
+            <span style={{ fontSize: 14, color: "#555" }}>feels {Math.round(data.apparentTemperature || data.temperature)}°</span>
+          </div>
+          <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+            {getSkyLabel(data.cloudCover)} · Wind {Math.round(data.windSpeed)} mph · DP {Math.round(data.dewPoint)}° · Humidity {Math.round((data.humidity || 0) * 100)}%
+            {data.precipIntensity > 0.01 && ` · ${getPrecipLabel(data.precipIntensity)}`}
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>EFFECTIVE</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#f97316" }}>{calc.effective.toFixed(1)}°F</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 16 }}>
+        <span style={{
+          background: "rgba(249,115,22,0.1)", border: "1px solid #f97316", borderRadius: 4,
+          padding: "3px 8px", fontSize: 11, color: "#ccc",
+        }}>
+          <span style={{ color: "#666" }}>Base </span>{Math.round(data.temperature)}
+        </span>
+        {modEntries.map((m) => (
+          <span key={m.label} style={{
+            background: m.val === 0 ? "rgba(255,255,255,0.02)" : "rgba(249,115,22,0.06)",
+            border: `1px solid ${m.val === 0 ? "#222" : "#f9731630"}`,
+            borderRadius: 4, padding: "3px 8px", fontSize: 11,
+            color: m.val === 0 ? "#333" : "#999",
+          }}>
+            <span style={{ color: "#555" }}>{m.label} </span>
+            {m.val > 0 ? "+" : m.val < 0 ? "−" : ""}{Math.abs(m.val)}
+          </span>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 16 }}>
+        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 16, border: "1px solid #1a1a1a" }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.top}</div>
+        </div>
+        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 16, border: "1px solid #1a1a1a" }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Bottom</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.bottom}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ClothingAlgo() {
+  const envKey = import.meta.env.VITE_PIRATE_WEATHER_API_KEY || "";
+  const [apiKey, setApiKey] = useState(envKey);
+  const [keyInput, setKeyInput] = useState("");
+  const [lat, setLat] = useState(DEFAULT_LAT);
+  const [lng, setLng] = useState(DEFAULT_LNG);
+  const [locationName, setLocationName] = useState(DEFAULT_LOCATION);
+  const [personalAdj, setPersonalAdj] = useState(0);
+  const [weatherData, setWeatherData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [lastFetch, setLastFetch] = useState(null);
+
+  const fetchWeather = useCallback(async (key, la, ln) => {
+    if (!key) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`https://api.pirateweather.net/forecast/${key}/${la},${ln}?units=us`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`API ${res.status}: ${txt.slice(0, 200)}`);
+      }
+      const data = await res.json();
+      setWeatherData(data);
+      setLastFetch(new Date());
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!apiKey) return;
+    fetchWeather(apiKey, lat, lng);
+    const interval = setInterval(() => fetchWeather(apiKey, lat, lng), 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [apiKey, lat, lng, fetchWeather]);
+
+  const sunsetTime = weatherData?.daily?.data?.[0]?.sunsetTime || null;
+
+  const hourlySlice = useMemo(() => {
+    if (!weatherData?.hourly?.data) return [];
+    const startOfDay = new Date();
+    startOfDay.setHours(6, 0, 0, 0);
+    const startTs = Math.floor(startOfDay.getTime() / 1000);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 0, 0, 0);
+    const endTs = Math.floor(endOfDay.getTime() / 1000);
+    return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
+  }, [weatherData]);
+
+  const currentData = weatherData?.currently;
+
+  const nowHourTs = useMemo(() => {
+    if (!hourlySlice.length) return null;
+    const now = Math.floor(Date.now() / 1000);
+    let closest = hourlySlice[0];
+    for (const h of hourlySlice) {
+      if (Math.abs(h.time - now) < Math.abs(closest.time - now)) closest = h;
+    }
+    return closest.time;
+  }, [hourlySlice]);
+
+  const handleSaveKey = () => {
+    if (keyInput.trim()) setApiKey(keyInput.trim());
+  };
+
+  const handleGeolocate = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLat(pos.coords.latitude);
+          setLng(pos.coords.longitude);
+          setLocationName(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+        },
+        () => setError("Geolocation denied. Using default location.")
+      );
+    }
+  };
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#0a0a0a",
+      color: "#e0e0e0",
+      fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+      padding: "32px 16px",
+    }}>
+      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet" />
+      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 4 }}>
+            Florida Comfort Index
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", letterSpacing: -0.5 }}>
+            Clothing Algorithm
+          </div>
+          <div style={{ width: 40, height: 2, background: "#f97316", marginTop: 8 }} />
+        </div>
+
+        {!apiKey ? (
+          <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 8, padding: 24 }}>
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+              PirateWeather API Key
+            </div>
+            <div style={{ fontSize: 12, color: "#666", marginBottom: 16, lineHeight: 1.5 }}>
+              Get a free key at{" "}
+              <a href="https://pirateweather.net" target="_blank" rel="noreferrer" style={{ color: "#f97316" }}>
+                pirateweather.net
+              </a>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                type="text"
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveKey()}
+                placeholder="Paste API key"
+                style={{
+                  flex: 1, padding: "8px 12px", background: "#0a0a0a", border: "1px solid #333",
+                  borderRadius: 4, color: "#e0e0e0", fontFamily: "inherit", fontSize: 13, outline: "none",
+                }}
+              />
+              <button
+                onClick={handleSaveKey}
+                style={{
+                  padding: "8px 16px", background: "#f97316", color: "#000", border: "none",
+                  borderRadius: 4, fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                Connect
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Status bar */}
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              marginBottom: 16, padding: "8px 12px", background: "#111", borderRadius: 6,
+              border: "1px solid #1a1a1a", flexWrap: "wrap", gap: 8,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 11, color: "#666" }}>{locationName}</span>
+                <button
+                  onClick={handleGeolocate}
+                  style={{
+                    background: "transparent", border: "1px solid #333", borderRadius: 3,
+                    color: "#666", fontSize: 10, padding: "2px 6px", cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  GPS
+                </button>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {lastFetch && (
+                  <span style={{ fontSize: 10, color: "#444" }}>
+                    {lastFetch.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                  </span>
+                )}
+                <button
+                  onClick={() => fetchWeather(apiKey, lat, lng)}
+                  disabled={loading}
+                  style={{
+                    background: "transparent", border: "1px solid #333", borderRadius: 3,
+                    color: loading ? "#333" : "#888", fontSize: 10, padding: "2px 8px",
+                    cursor: loading ? "default" : "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  {loading ? "..." : "Refresh"}
+                </button>
+                <button
+                  onClick={() => { setApiKey(""); setWeatherData(null); setKeyInput(""); }}
+                  style={{
+                    background: "transparent", border: "1px solid #333", borderRadius: 3,
+                    color: "#555", fontSize: 10, padding: "2px 6px", cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div style={{
+                background: "rgba(239,68,68,0.1)", border: "1px solid #ef4444", borderRadius: 6,
+                padding: "8px 12px", fontSize: 12, color: "#ef4444", marginBottom: 16,
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Personal adjustment */}
+            <div style={{
+              background: "#111", border: "1px solid #1a1a1a", borderRadius: 8,
+              padding: "16px 24px", marginBottom: 20,
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 13, color: "#a0a0a0" }}>Personal Adjustment</span>
+                <span style={{ fontSize: 13, color: "#e0e0e0", fontWeight: 600 }}>
+                  {personalAdj > 0 ? `+${personalAdj}` : personalAdj}°F
+                </span>
+              </div>
+              <input
+                type="range" min={-5} max={5} step={1} value={personalAdj}
+                onChange={(e) => setPersonalAdj(Number(e.target.value))}
+                style={{ width: "100%", accentColor: "#f97316" }}
+              />
+              <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
+                ← Feeling cold&nbsp;&nbsp;|&nbsp;&nbsp;Feeling warm →
+              </div>
+            </div>
+
+            {/* Current conditions */}
+            {currentData && <CurrentPanel data={currentData} personalAdj={personalAdj} sunsetTime={sunsetTime} />}
+
+            {/* Hourly timeline */}
+            {hourlySlice.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
+                  Today's Timeline — 6 AM to 11 PM
+                </div>
+                <div style={{
+                  display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
+                }}>
+                  {hourlySlice.map((h) => (
+                    <HourCard
+                      key={h.time}
+                      data={h}
+                      personalAdj={personalAdj}
+                      sunsetTime={sunsetTime}
+                      isNow={h.time === nowHourTs}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tier reference */}
+            {currentData && (
+              <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 8, padding: "16px 24px" }}>
+                <div style={{ fontSize: 10, color: "#444", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Tier Map</div>
+                {[
+                  { label: "T-Shirt + Shorts", range: "≥ 72°F", min: 72, max: Infinity, color: "#22c55e" },
+                  { label: "Crew Neck + Shorts", range: "66 – 72°F", min: 66, max: 72, color: "#eab308" },
+                  { label: "Hoodie + Shorts", range: "58 – 66°F", min: 58, max: 66, color: "#f97316" },
+                  { label: "Jacket + Pants", range: "< 58°F", min: -Infinity, max: 58, color: "#ef4444" },
+                ].map((tier) => {
+                  const eff = computeEffective(currentData, personalAdj, sunsetTime).effective;
+                  const isActive = eff >= tier.min && eff < tier.max;
+                  return (
+                    <div key={tier.label} style={{
+                      display: "flex", justifyContent: "space-between", padding: "4px 8px",
+                      fontSize: 11, color: isActive ? tier.color : "#333",
+                      background: isActive ? `${tier.color}10` : "transparent",
+                      borderRadius: 3, marginBottom: 2,
+                      borderLeft: isActive ? `2px solid ${tier.color}` : "2px solid transparent",
+                    }}>
+                      <span>{tier.label}</span>
+                      <span>{tier.range}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
