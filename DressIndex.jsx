@@ -151,6 +151,10 @@ function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, currentData }) {
     cur.calc.effective > max.calc.effective ? cur : max
   );
 
+  const sunsetEntry = sunsetTime ? futureCalcs.reduce((closest, cur) =>
+    Math.abs(cur.data.time - sunsetTime) < Math.abs(closest.data.time - sunsetTime) ? cur : closest
+  ) : null;
+
   const currentCalc = computeEffective(currentData, personalAdj, sunsetTime);
   const currentClothing = getClothing(currentCalc.effective);
   const coldestClothing = getClothing(coldest.calc.effective);
@@ -206,6 +210,22 @@ function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, currentData }) {
             {formatHour(coldest.data.time)} · {coldestClothing.top}
           </div>
         </div>
+        {sunsetEntry && (
+          <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
+            <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+              At Sunset
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: getClothing(sunsetEntry.calc.effective).color }}>
+                {sunsetEntry.calc.effective.toFixed(0)}°
+              </span>
+              <span style={{ fontSize: 11, color: "#555" }}>eff</span>
+            </div>
+            <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+              {formatHour(sunsetEntry.data.time)} · {getClothing(sunsetEntry.calc.effective).top}
+            </div>
+          </div>
+        )}
         <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
           <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
             Warmest Point
@@ -473,6 +493,18 @@ export default function ClothingAlgo() {
             <div style={{
               display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap",
             }}>
+              <button
+                onClick={handleGeolocate}
+                style={{
+                  padding: "4px 12px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
+                  background: !LOCATIONS.some((l) => l.name === locationName) ? "#f97316" : "transparent",
+                  color: !LOCATIONS.some((l) => l.name === locationName) ? "#000" : "#666",
+                  border: !LOCATIONS.some((l) => l.name === locationName) ? "1px solid #f97316" : "1px solid #333",
+                  borderRadius: 4, cursor: "pointer",
+                }}
+              >
+                Current Location
+              </button>
               {LOCATIONS.map((loc) => {
                 const isActive = locationName === loc.name;
                 return (
@@ -491,16 +523,6 @@ export default function ClothingAlgo() {
                   </button>
                 );
               })}
-              <button
-                onClick={handleGeolocate}
-                style={{
-                  padding: "4px 12px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
-                  background: "transparent", color: "#666", border: "1px solid #333",
-                  borderRadius: 4, cursor: "pointer",
-                }}
-              >
-                GPS
-              </button>
             </div>
 
             {error && (
