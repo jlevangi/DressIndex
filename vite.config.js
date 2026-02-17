@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+          globIgnores: ['**/Gemini_Generated_*.png'],
         },
         manifest: {
           name: 'DressIndex',
