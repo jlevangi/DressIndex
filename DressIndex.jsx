@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { computeEffective, getClothing, getDayRecommendation } from "./src/weather-utils.js";
 
 const DEFAULT_LAT = 28.1614;
 const DEFAULT_LNG = -81.6137;
@@ -13,79 +14,16 @@ const LOCATIONS = [
   { label: "Cincinnati", lat: 39.1031, lng: -84.5120, name: "Cincinnati, OH" },
 ];
 
-function getWindMod(speed) {
-  if (speed <= 10) return 0;
-  if (speed <= 15) return -2;
-  if (speed <= 20) return -4;
-  return -6;
-}
-
-function getSkyMod(cloudCover) {
-  if (cloudCover < 0.3) return 0;
-  if (cloudCover < 0.7) return -1.5;
-  return -3;
-}
-
 function getSkyLabel(cloudCover) {
   if (cloudCover < 0.3) return "Clear";
   if (cloudCover < 0.7) return "Partly Cloudy";
   return "Overcast";
 }
 
-function getPrecipMod(intensity) {
-  if (!intensity || intensity < 0.01) return 0;
-  if (intensity < 0.1) return -2;
-  return -4;
-}
-
 function getPrecipLabel(intensity) {
   if (!intensity || intensity < 0.01) return "None";
   if (intensity < 0.1) return "Drizzle";
   return "Rain";
-}
-
-function getTimeMod(timestamp, sunsetTime) {
-  if (!sunsetTime) return 0;
-  const diff = (sunsetTime - timestamp) / 60;
-  if (diff <= 0) return -3;
-  if (diff <= 30) return -3;
-  if (diff <= 60) return -2;
-  const hour = new Date(timestamp * 1000).getHours();
-  if (hour >= 15 && hour < 16) return -1;
-  if (hour >= 10 && hour < 15) return 0;
-  if (hour < 10) return -1;
-  return -2;
-}
-
-function dewPointMod(dp) {
-  if (dp >= 65) return 3;
-  if (dp >= 60) return 2;
-  if (dp >= 55) return 1;
-  return 0;
-}
-
-function computeEffective(data, personalAdj, sunsetTime) {
-  const wMod = getWindMod(data.windSpeed || 0);
-  const sMod = getSkyMod(data.cloudCover || 0);
-  const pMod = getPrecipMod(data.precipIntensity);
-  const tMod = getTimeMod(data.time, sunsetTime);
-  const dMod = dewPointMod(data.dewPoint || 50);
-  const total = wMod + sMod + pMod + tMod + dMod + personalAdj;
-  return {
-    base: data.temperature,
-    effective: data.temperature + total,
-    mods: { wind: wMod, sky: sMod, precip: pMod, time: tMod, dewPt: dMod, personal: personalAdj },
-    total,
-  };
-}
-
-function getClothing(eff) {
-  let top, bottom, color;
-  if (eff >= 72) { top = "T-Shirt"; bottom = "Shorts"; color = "#22c55e"; }
-  else if (eff >= 66) { top = "Crew Neck"; bottom = "Shorts"; color = "#eab308"; }
-  else if (eff >= 58) { top = "Hoodie"; bottom = "Shorts"; color = "#f97316"; }
-  else { top = "Jacket"; bottom = "Pants"; color = "#ef4444"; }
-  return { top, bottom, color };
 }
 
 function formatHour(ts) {
@@ -490,7 +428,35 @@ export default function ClothingAlgo() {
     };
   }, []);
 
-  // Schedule daily notification (single-shot; effect re-runs on deps change)
+  const fireClothingNotification = useCallback(() => {
+    const sunset = weatherData?.daily?.data?.[0]?.sunsetTime || null;
+    const hourlyData = weatherData?.hourly?.data || [];
+    const startHour = notifTime ? Number(notifTime.split(":")[0]) : 6;
+
+    let body;
+    const rec = getDayRecommendation(hourlyData, personalAdj, sunset, startHour);
+    if (rec) {
+      body = `${Math.round(rec.coldestEffective)}°F coldest effective today — wear a ${rec.clothing.top} + ${rec.clothing.bottom}`;
+    } else {
+      body = "Open DressIndex to see today's recommendation";
+    }
+
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: "SHOW_NOTIFICATION",
+        title: "DressIndex",
+        body,
+      });
+    } else {
+      try {
+        new Notification("DressIndex", { body, tag: "daily-clothing", icon: "/pwa-192x192.png" });
+      } catch (_) {
+        // Notification constructor not available in this context
+      }
+    }
+  }, [weatherData, personalAdj, notifTime]);
+
+  // Layer 2: Schedule daily notification via setTimeout (fallback while app is open)
   useEffect(() => {
     if (notifPermission !== "granted" || !notifTime) return;
     const [h, m] = notifTime.split(":").map(Number);
@@ -501,7 +467,44 @@ export default function ClothingAlgo() {
     const delay = target.getTime() - now.getTime();
     const timerId = setTimeout(() => fireClothingNotification(), delay);
     return () => clearTimeout(timerId);
-  }, [notifPermission, notifTime, weatherData, personalAdj]);
+  }, [notifPermission, notifTime, fireClothingNotification]);
+
+  // Sync config to IndexedDB so the SW can access it
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || !notifTime || !apiKey) return;
+    navigator.serviceWorker.ready.then((reg) => {
+      if (reg.active) {
+        reg.active.postMessage({
+          type: "SYNC_CONFIG",
+          config: { notifTime, apiKey, lat, lng, personalAdj },
+        });
+      }
+    });
+  }, [notifTime, apiKey, lat, lng, personalAdj]);
+
+  // Layer 3: On mount, ask SW to check for missed notification
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || notifPermission !== "granted" || !notifTime) return;
+    navigator.serviceWorker.ready.then((reg) => {
+      if (reg.active) {
+        reg.active.postMessage({ type: "CHECK_MISSED_NOTIFICATION" });
+      }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-register periodic sync on mount (browser may have cleared it)
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || notifPermission !== "granted" || !notifTime) return;
+    navigator.serviceWorker.ready.then(async (reg) => {
+      if ("periodicSync" in reg) {
+        try {
+          await reg.periodicSync.register("daily-clothing-check", { minInterval: 60 * 60 * 1000 });
+        } catch (_) {
+          // Not allowed — Layer 2 handles it
+        }
+      }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sunsetTime = weatherData?.daily?.data?.[0]?.sunsetTime || null;
 
@@ -560,32 +563,25 @@ export default function ClothingAlgo() {
     if (perm === "granted") setShowTimePicker(true);
   };
 
-  const handleSaveNotifTime = (time) => {
+  const handleSaveNotifTime = async (time) => {
     setNotifTime(time);
     localStorage.setItem("dressindex_notif_time", time);
     setShowTimePicker(false);
-  };
 
-  const fireClothingNotification = () => {
-    const current = weatherData?.currently;
-    const sunset = weatherData?.daily?.data?.[0]?.sunsetTime || null;
-    let body;
-    if (current) {
-      const calc = computeEffective(current, personalAdj, sunset);
-      const clothing = getClothing(calc.effective);
-      body = `${Math.round(calc.effective)}°F effective — wear a ${clothing.top} + ${clothing.bottom}`;
-    } else {
-      body = "Open DressIndex to see today's recommendation";
+    // Register periodic background sync (Layer 1)
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      if ("periodicSync" in reg) {
+        try {
+          await reg.periodicSync.register("daily-clothing-check", { minInterval: 60 * 60 * 1000 });
+        } catch (_) {
+          // Periodic sync not allowed — Layer 2 setTimeout fallback will handle it
+        }
+      }
     }
-    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: "SHOW_NOTIFICATION",
-        title: "DressIndex",
-        body,
-      });
-    } else {
-      new Notification("DressIndex", { body, tag: "daily-clothing", icon: "/pwa-192x192.png" });
-    }
+
+    // Fire a test notification immediately so user gets confirmation
+    fireClothingNotification();
   };
 
   return (
