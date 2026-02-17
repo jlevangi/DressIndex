@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version:*)",
+      "Bash(npm --version:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vite:*)",
+      "Bash(chmod:*)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex init)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex status)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex diff)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex add .gitignore DressIndex.jsx index.html package.json package-lock.json src/main.jsx start.sh vite.config.js)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex commit -m \"$\\(cat <<''EOF''\nInitial commit: DressIndex weather clothing app\n\nVite + React project with PirateWeather API integration, .env support\nfor API key, start script, and gitignore.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npx:*)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex log --oneline -5)"
+    ]
+  }
+}
