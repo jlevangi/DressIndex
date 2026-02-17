@@ -4,6 +4,13 @@ const DEFAULT_LAT = 28.3922;
 const DEFAULT_LNG = -81.5812;
 const DEFAULT_LOCATION = "Bay Lake, FL";
 
+const LOCATIONS = [
+  { label: "Disney", lat: 28.3922, lng: -81.5812, name: "Bay Lake, FL" },
+  { label: "Orlando", lat: 28.5383, lng: -81.3792, name: "Orlando, FL" },
+  { label: "Miami", lat: 25.7617, lng: -80.1918, name: "Miami, FL" },
+  { label: "Cincinnati", lat: 39.1031, lng: -84.5120, name: "Cincinnati, OH" },
+];
+
 function getWindMod(speed) {
   if (speed <= 10) return 0;
   if (speed <= 15) return -2;
@@ -432,15 +439,6 @@ export default function ClothingAlgo() {
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontSize: 11, color: "#666" }}>{locationName}</span>
-                <button
-                  onClick={handleGeolocate}
-                  style={{
-                    background: "transparent", border: "1px solid #333", borderRadius: 3,
-                    color: "#666", fontSize: 10, padding: "2px 6px", cursor: "pointer", fontFamily: "inherit",
-                  }}
-                >
-                  GPS
-                </button>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {lastFetch && (
@@ -469,6 +467,40 @@ export default function ClothingAlgo() {
                   Reset
                 </button>
               </div>
+            </div>
+
+            {/* Quick location buttons */}
+            <div style={{
+              display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap",
+            }}>
+              {LOCATIONS.map((loc) => {
+                const isActive = locationName === loc.name;
+                return (
+                  <button
+                    key={loc.label}
+                    onClick={() => { setLat(loc.lat); setLng(loc.lng); setLocationName(loc.name); }}
+                    style={{
+                      padding: "4px 12px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
+                      background: isActive ? "#f97316" : "transparent",
+                      color: isActive ? "#000" : "#666",
+                      border: isActive ? "1px solid #f97316" : "1px solid #333",
+                      borderRadius: 4, cursor: "pointer",
+                    }}
+                  >
+                    {loc.label}
+                  </button>
+                );
+              })}
+              <button
+                onClick={handleGeolocate}
+                style={{
+                  padding: "4px 12px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
+                  background: "transparent", color: "#666", border: "1px solid #333",
+                  borderRadius: 4, cursor: "pointer",
+                }}
+              >
+                GPS
+              </button>
             </div>
 
             {error && (
