@@ -92,6 +92,13 @@ function formatHour(ts) {
   return new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", hour12: true });
 }
 
+function formatTime12h(time24) {
+  const [h, m] = time24.split(":").map(Number);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${m.toString().padStart(2, "0")} ${suffix}`;
+}
+
 function HourCard({ data, personalAdj, sunsetTime, isNow }) {
   const calc = computeEffective(data, personalAdj, sunsetTime);
   const clothing = getClothing(calc.effective);
@@ -315,6 +322,103 @@ function CurrentPanel({ data, personalAdj, sunsetTime }) {
   );
 }
 
+function NotifTimePicker({ initialTime, onSave, onCancel }) {
+  const [time, setTime] = useState(initialTime || "07:00");
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <input
+        type="time"
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
+        style={{
+          background: "#0a0a0a", border: "1px solid #333", borderRadius: 4,
+          color: "#e0e0e0", fontFamily: "inherit", fontSize: 11, padding: "4px 6px",
+          outline: "none",
+        }}
+      />
+      <button
+        onClick={() => onSave(time)}
+        style={{
+          background: "#f97316", color: "#000", border: "none", borderRadius: 4,
+          fontFamily: "inherit", fontSize: 10, fontWeight: 600, padding: "4px 10px",
+          cursor: "pointer",
+        }}
+      >
+        Save
+      </button>
+      {onCancel && (
+        <button
+          onClick={onCancel}
+          style={{
+            background: "transparent", color: "#555", border: "1px solid #333",
+            borderRadius: 4, fontFamily: "inherit", fontSize: 10, padding: "4px 8px",
+            cursor: "pointer",
+          }}
+        >
+          Cancel
+        </button>
+      )}
+    </div>
+  );
+}
+
+function HeaderAction({ installPrompt, isInstalled, notifPermission, notifTime, showTimePicker, onInstall, onRequestNotifications, onSaveNotifTime, onEditTime, onCancelEdit }) {
+  if (installPrompt && !isInstalled) {
+    return (
+      <button onClick={onInstall} style={{
+        display: "flex", alignItems: "center", gap: 6, background: "transparent",
+        border: "1px solid #f97316", borderRadius: 6, color: "#f97316", fontFamily: "inherit",
+        fontSize: 11, fontWeight: 600, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap",
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Install
+      </button>
+    );
+  }
+
+  if (isInstalled && notifPermission === "default") {
+    return (
+      <button onClick={onRequestNotifications} style={{
+        display: "flex", alignItems: "center", gap: 6, background: "transparent",
+        border: "1px solid #f97316", borderRadius: 6, color: "#f97316", fontFamily: "inherit",
+        fontSize: 11, fontWeight: 600, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap",
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+        Get notified!
+      </button>
+    );
+  }
+
+  if (notifPermission === "granted" && (showTimePicker || !notifTime)) {
+    return <NotifTimePicker initialTime={notifTime || "07:00"} onSave={onSaveNotifTime} onCancel={notifTime ? onCancelEdit : undefined} />;
+  }
+
+  if (notifPermission === "granted" && notifTime) {
+    return (
+      <button onClick={onEditTime} style={{
+        display: "flex", alignItems: "center", gap: 5, background: "transparent",
+        border: "1px solid #333", borderRadius: 6, color: "#888", fontFamily: "inherit",
+        fontSize: 11, padding: "6px 10px", cursor: "pointer", whiteSpace: "nowrap",
+      }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+        {formatTime12h(notifTime)}
+      </button>
+    );
+  }
+
+  return null;
+}
+
 export default function ClothingAlgo() {
   const envKey = window.__CONFIG__?.PIRATE_WEATHER_API_KEY || import.meta.env.VITE_PIRATE_WEATHER_API_KEY || "";
   const [apiKey, setApiKey] = useState(envKey);
@@ -327,6 +431,17 @@ export default function ClothingAlgo() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastFetch, setLastFetch] = useState(null);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(
+    typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches
+  );
+  const [notifPermission, setNotifPermission] = useState(
+    typeof Notification !== "undefined" ? Notification.permission : "denied"
+  );
+  const [notifTime, setNotifTime] = useState(
+    () => localStorage.getItem("dressindex_notif_time")
+  );
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const fetchWeather = useCallback(async (key, la, ln) => {
     if (!key) return;
@@ -354,6 +469,39 @@ export default function ClothingAlgo() {
     const interval = setInterval(() => fetchWeather(apiKey, lat, lng), 15 * 60 * 1000);
     return () => clearInterval(interval);
   }, [apiKey, lat, lng, fetchWeather]);
+
+  // Detect standalone (installed PWA) mode
+  useEffect(() => {
+    const mq = window.matchMedia("(display-mode: standalone)");
+    const handler = (e) => setIsInstalled(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Capture beforeinstallprompt and appinstalled events
+  useEffect(() => {
+    const onBeforeInstall = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    const onInstalled = () => { setIsInstalled(true); setInstallPrompt(null); };
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  // Schedule daily notification (single-shot; effect re-runs on deps change)
+  useEffect(() => {
+    if (notifPermission !== "granted" || !notifTime) return;
+    const [h, m] = notifTime.split(":").map(Number);
+    const now = new Date();
+    const target = new Date();
+    target.setHours(h, m, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+    const delay = target.getTime() - now.getTime();
+    const timerId = setTimeout(() => fireClothingNotification(), delay);
+    return () => clearTimeout(timerId);
+  }, [notifPermission, notifTime, weatherData, personalAdj]);
 
   const sunsetTime = weatherData?.daily?.data?.[0]?.sunsetTime || null;
 
@@ -397,6 +545,49 @@ export default function ClothingAlgo() {
     }
   };
 
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const result = await installPrompt.userChoice;
+    setInstallPrompt(null);
+    if (result.outcome === "accepted") setIsInstalled(true);
+  };
+
+  const handleRequestNotifications = async () => {
+    if (typeof Notification === "undefined") return;
+    const perm = await Notification.requestPermission();
+    setNotifPermission(perm);
+    if (perm === "granted") setShowTimePicker(true);
+  };
+
+  const handleSaveNotifTime = (time) => {
+    setNotifTime(time);
+    localStorage.setItem("dressindex_notif_time", time);
+    setShowTimePicker(false);
+  };
+
+  const fireClothingNotification = () => {
+    const current = weatherData?.currently;
+    const sunset = weatherData?.daily?.data?.[0]?.sunsetTime || null;
+    let body;
+    if (current) {
+      const calc = computeEffective(current, personalAdj, sunset);
+      const clothing = getClothing(calc.effective);
+      body = `${Math.round(calc.effective)}°F effective — wear a ${clothing.top} + ${clothing.bottom}`;
+    } else {
+      body = "Open DressIndex to see today's recommendation";
+    }
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: "SHOW_NOTIFICATION",
+        title: "DressIndex",
+        body,
+      });
+    } else {
+      new Notification("DressIndex", { body, tag: "daily-clothing", icon: "/pwa-192x192.png" });
+    }
+  };
+
   return (
     <div style={{
       minHeight: "100vh",
@@ -407,14 +598,28 @@ export default function ClothingAlgo() {
     }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet" />
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 4 }}>
-            Florida Comfort Index
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 4 }}>
+              Florida Comfort Index
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", letterSpacing: -0.5 }}>
+              Clothing Algorithm
+            </div>
+            <div style={{ width: 40, height: 2, background: "#f97316", marginTop: 8 }} />
           </div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", letterSpacing: -0.5 }}>
-            Clothing Algorithm
-          </div>
-          <div style={{ width: 40, height: 2, background: "#f97316", marginTop: 8 }} />
+          <HeaderAction
+            installPrompt={installPrompt}
+            isInstalled={isInstalled}
+            notifPermission={notifPermission}
+            notifTime={notifTime}
+            showTimePicker={showTimePicker}
+            onInstall={handleInstall}
+            onRequestNotifications={handleRequestNotifications}
+            onSaveNotifTime={handleSaveNotifTime}
+            onEditTime={() => setShowTimePicker(true)}
+            onCancelEdit={() => setShowTimePicker(false)}
+          />
         </div>
 
         {!apiKey ? (

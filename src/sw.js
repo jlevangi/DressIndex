@@ -12,6 +12,18 @@ self.addEventListener('push', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SHOW_NOTIFICATION') {
+    event.waitUntil(
+      self.registration.showNotification(event.data.title || 'DressIndex', {
+        body: event.data.body || '',
+        icon: '/pwa-192x192.png',
+        tag: 'daily-clothing',
+      })
+    );
+  }
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
