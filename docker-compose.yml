@@ -3,4 +3,6 @@ services:
     image: jlevangie/dressindex:latest
     ports:
       - "8080:80"
+    env_file:
+      - .env
     restart: unless-stopped

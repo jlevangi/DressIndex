@@ -316,7 +316,7 @@ function CurrentPanel({ data, personalAdj, sunsetTime }) {
 }
 
 export default function ClothingAlgo() {
-  const envKey = import.meta.env.VITE_PIRATE_WEATHER_API_KEY || "";
+  const envKey = window.__CONFIG__?.PIRATE_WEATHER_API_KEY || import.meta.env.VITE_PIRATE_WEATHER_API_KEY || "";
   const [apiKey, setApiKey] = useState(envKey);
   const [keyInput, setKeyInput] = useState("");
   const [lat, setLat] = useState(DEFAULT_LAT);
