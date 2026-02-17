@@ -15,7 +15,11 @@
       "Bash(git -C /mnt/c/Users/pierc/git/DressIndex log --oneline -5)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex add index.html vite.config.js package.json package-lock.json src/sw.js public/)",
+      "Bash(docker compose:*)",
+      "Bash(git -C /mnt/c/Users/pierc/git/DressIndex add index.html vite.config.js public/Gemini_Generated_DressIndexTransparent.png public/apple-touch-icon-180x180.png public/favicon.ico public/maskable-icon-512x512.png public/pwa-192x192.png public/pwa-512x512.png public/pwa-64x64.png public/favicon.svg)"
     ]
   }
 }
