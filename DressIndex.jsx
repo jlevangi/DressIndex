@@ -551,7 +551,7 @@ export default function ClothingAlgo() {
                 style={{ width: "100%", accentColor: "#f97316" }}
               />
               <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
-                ← Feeling cold&nbsp;&nbsp;|&nbsp;&nbsp;Feeling warm →
+                ← I'm feeling colder today&nbsp;&nbsp;|&nbsp;&nbsp;I'm feeling warmer today →
               </div>
             </div>
 
