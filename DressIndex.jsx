@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
-const DEFAULT_LAT = 28.3922;
-const DEFAULT_LNG = -81.5812;
-const DEFAULT_LOCATION = "Bay Lake, FL";
+const DEFAULT_LAT = 28.1614;
+const DEFAULT_LNG = -81.6137;
+const DEFAULT_LOCATION = "Davenport, FL";
 
 const LOCATIONS = [
+  { label: "Home", lat: 28.1614, lng: -81.6137, name: "Davenport, FL" },
   { label: "Disney", lat: 28.3922, lng: -81.5812, name: "Bay Lake, FL" },
   { label: "Orlando", lat: 28.5383, lng: -81.3792, name: "Orlando, FL" },
   { label: "Miami", lat: 25.7617, lng: -80.1918, name: "Miami, FL" },
@@ -552,7 +553,7 @@ export default function ClothingAlgo() {
                 style={{ width: "100%", accentColor: "#f97316" }}
               />
               <div style={{ fontSize: 11, color: "#555", marginTop: 2, textAlign: "center" }}>
-                ← I'm feeling colder today&nbsp;&nbsp;|&nbsp;&nbsp;I'm feeling warmer today →
+                ← Feeling colder today&nbsp;&nbsp;|&nbsp;&nbsp;Feeling warmer today →
               </div>
             </div>
 
