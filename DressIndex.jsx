@@ -8,6 +8,7 @@ const LOCATIONS = [
   { label: "Disney", lat: 28.3922, lng: -81.5812, name: "Bay Lake, FL" },
   { label: "Orlando", lat: 28.5383, lng: -81.3792, name: "Orlando, FL" },
   { label: "Miami", lat: 25.7617, lng: -80.1918, name: "Miami, FL" },
+  { label: "Tampa", lat: 27.9506, lng: -82.4572, name: "Tampa, FL" },
   { label: "Cincinnati", lat: 39.1031, lng: -84.5120, name: "Cincinnati, OH" },
 ];
 
@@ -550,7 +551,7 @@ export default function ClothingAlgo() {
                 onChange={(e) => setPersonalAdj(Number(e.target.value))}
                 style={{ width: "100%", accentColor: "#f97316" }}
               />
-              <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: "#555", marginTop: 2, textAlign: "center" }}>
                 ← I'm feeling colder today&nbsp;&nbsp;|&nbsp;&nbsp;I'm feeling warmer today →
               </div>
             </div>
