@@ -23,7 +23,8 @@
       "Bash(node:*)",
       "Bash(git -C /mnt/c/Users/pierc/git/DressIndex diff --stat)",
       "Bash(git -C /mnt/c/Users/pierc/git/DressIndex log --oneline -3)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git config:*)"
     ]
   }
 }
