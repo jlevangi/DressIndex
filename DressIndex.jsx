@@ -798,10 +798,14 @@ export default function ClothingAlgo() {
               <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 8, padding: "16px 24px" }}>
                 <div style={{ fontSize: 10, color: "#444", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Tier Map</div>
                 {[
-                  { label: "T-Shirt + Shorts", range: "≥ 72°F", min: 72, max: Infinity, color: "#22c55e" },
+                  { label: "Topless + Speedo", range: "≥ 85°F", min: 85, max: Infinity, color: "#ec4899" },
+                  { label: "T-Shirt + Shorts", range: "72 – 85°F", min: 72, max: 85, color: "#22c55e" },
                   { label: "Crew Neck + Shorts", range: "66 – 72°F", min: 66, max: 72, color: "#eab308" },
-                  { label: "Hoodie + Shorts", range: "58 – 66°F", min: 58, max: 66, color: "#f97316" },
-                  { label: "Jacket + Pants", range: "< 58°F", min: -Infinity, max: 58, color: "#ef4444" },
+                  { label: "Light Jacket + Shorts", range: "60 – 66°F", min: 60, max: 66, color: "#f97316" },
+                  { label: "Light Jacket + Pants", range: "56 – 60°F", min: 56, max: 60, color: "#ea580c" },
+                  { label: "Hoodie + Pants", range: "40 – 56°F", min: 40, max: 56, color: "#ef4444" },
+                  { label: "Medium Coat + Pants", range: "32 – 40°F", min: 32, max: 40, color: "#3b82f6" },
+                  { label: "Winter Coat + Pants", range: "< 32°F", min: -Infinity, max: 32, color: "#8b5cf6" },
                 ].map((tier) => {
                   const eff = computeEffective(currentData, personalAdj, sunsetTime).effective;
                   const isActive = eff >= tier.min && eff < tier.max;

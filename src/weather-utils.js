@@ -54,10 +54,14 @@ export function computeEffective(data, personalAdj, sunsetTime) {
 
 export function getClothing(eff) {
   let top, bottom, color;
-  if (eff >= 72) { top = "T-Shirt"; bottom = "Shorts"; color = "#22c55e"; }
-  else if (eff >= 66) { top = "Crew Neck"; bottom = "Shorts"; color = "#eab308"; }
-  else if (eff >= 58) { top = "Hoodie"; bottom = "Shorts"; color = "#f97316"; }
-  else { top = "Jacket"; bottom = "Pants"; color = "#ef4444"; }
+  if (eff >= 85)      { top = "Topless";      bottom = "Speedo"; color = "#ec4899"; }
+  else if (eff >= 72) { top = "T-Shirt";      bottom = "Shorts"; color = "#22c55e"; }
+  else if (eff >= 66) { top = "Crew Neck";    bottom = "Shorts"; color = "#eab308"; }
+  else if (eff >= 60) { top = "Light Jacket"; bottom = "Shorts"; color = "#f97316"; }
+  else if (eff >= 56) { top = "Light Jacket"; bottom = "Pants";  color = "#ea580c"; }
+  else if (eff >= 40) { top = "Hoodie";       bottom = "Pants";  color = "#ef4444"; }
+  else if (eff >= 32) { top = "Medium Coat";  bottom = "Pants";  color = "#3b82f6"; }
+  else                { top = "Winter Coat";  bottom = "Pants";  color = "#8b5cf6"; }
   return { top, bottom, color };
 }
 
@@ -83,15 +87,24 @@ export function getDayRecommendation(hourlyData, personalAdj, sunsetTime, startH
   let coldestEff = Infinity;
   let coldestHour = null;
 
+  const tenPM = new Date(today);
+  tenPM.setHours(22, 0, 0, 0);
+  const tenPMTs = Math.floor(tenPM.getTime() / 1000);
+  let needsPants = false;
+
   for (const h of relevant) {
     const calc = computeEffective(h, personalAdj, sunsetTime);
     if (calc.effective < coldestEff) {
       coldestEff = calc.effective;
       coldestHour = h;
     }
+    if (h.time < tenPMTs && calc.effective < 60) {
+      needsPants = true;
+    }
   }
 
   const clothing = getClothing(coldestEff);
+  if (needsPants) clothing.bottom = "Pants";
   return {
     coldestEffective: coldestEff,
     coldestHour,
