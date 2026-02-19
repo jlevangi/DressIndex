@@ -135,50 +135,32 @@ function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetTime }) {
       </div>
 
       <div style={{ display: "flex", gap: 12 }}>
-        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
-          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-            Coldest
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: coldestClothing.color }}>
-              {coldest.calc.effective.toFixed(0)}°
-            </span>
-            <span style={{ fontSize: 11, color: "#555" }}>eff</span>
-          </div>
-          <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-            {formatHour(coldest.data.time)} · {coldestClothing.top}
-          </div>
-        </div>
-        {sunsetEntry && (
-          <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
-            <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-              At Sunset
+        {(() => {
+          const slots = [
+            { label: "Coldest", entry: coldest, clothing: coldestClothing },
+            { label: "Warmest", entry: warmest, clothing: getClothing(warmest.calc.effective) },
+          ];
+          if (sunsetEntry) {
+            slots.push({ label: "At Sunset", entry: sunsetEntry, clothing: getClothing(sunsetEntry.calc.effective) });
+          }
+          slots.sort((a, b) => a.entry.data.time - b.entry.data.time);
+          return slots.map((slot) => (
+            <div key={slot.label} style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
+              <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                {slot.label}
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: slot.clothing.color }}>
+                  {slot.entry.calc.effective.toFixed(0)}°
+                </span>
+                <span style={{ fontSize: 11, color: "#555" }}>eff</span>
+              </div>
+              <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+                {formatHour(slot.entry.data.time)} · {slot.clothing.top}
+              </div>
             </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontSize: 20, fontWeight: 700, color: getClothing(sunsetEntry.calc.effective).color }}>
-                {sunsetEntry.calc.effective.toFixed(0)}°
-              </span>
-              <span style={{ fontSize: 11, color: "#555" }}>eff</span>
-            </div>
-            <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-              {formatHour(sunsetEntry.data.time)} · {getClothing(sunsetEntry.calc.effective).top}
-            </div>
-          </div>
-        )}
-        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
-          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-            Warmest
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: getClothing(warmest.calc.effective).color }}>
-              {warmest.calc.effective.toFixed(0)}°
-            </span>
-            <span style={{ fontSize: 11, color: "#555" }}>eff</span>
-          </div>
-          <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-            {formatHour(warmest.data.time)} · {getClothing(warmest.calc.effective).top}
-          </div>
-        </div>
+          ));
+        })()}
       </div>
     </div>
   );
@@ -249,50 +231,32 @@ function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, currentData }) {
       )}
 
       <div style={{ display: "flex", gap: 12 }}>
-        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
-          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-            Coldest Point
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: coldestClothing.color }}>
-              {coldest.calc.effective.toFixed(0)}°
-            </span>
-            <span style={{ fontSize: 11, color: "#555" }}>eff</span>
-          </div>
-          <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-            {formatHour(coldest.data.time)} · {coldestClothing.top}
-          </div>
-        </div>
-        {sunsetEntry && (
-          <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
-            <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-              At Sunset
+        {(() => {
+          const slots = [
+            { label: "Coldest Point", entry: coldest, clothing: coldestClothing },
+            { label: "Warmest Point", entry: warmest, clothing: getClothing(warmest.calc.effective) },
+          ];
+          if (sunsetEntry) {
+            slots.push({ label: "At Sunset", entry: sunsetEntry, clothing: getClothing(sunsetEntry.calc.effective) });
+          }
+          slots.sort((a, b) => a.entry.data.time - b.entry.data.time);
+          return slots.map((slot) => (
+            <div key={slot.label} style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
+              <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                {slot.label}
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: slot.clothing.color }}>
+                  {slot.entry.calc.effective.toFixed(0)}°
+                </span>
+                <span style={{ fontSize: 11, color: "#555" }}>eff</span>
+              </div>
+              <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+                {formatHour(slot.entry.data.time)} · {slot.clothing.top}
+              </div>
             </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontSize: 20, fontWeight: 700, color: getClothing(sunsetEntry.calc.effective).color }}>
-                {sunsetEntry.calc.effective.toFixed(0)}°
-              </span>
-              <span style={{ fontSize: 11, color: "#555" }}>eff</span>
-            </div>
-            <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-              {formatHour(sunsetEntry.data.time)} · {getClothing(sunsetEntry.calc.effective).top}
-            </div>
-          </div>
-        )}
-        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
-          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-            Warmest Point
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: getClothing(warmest.calc.effective).color }}>
-              {warmest.calc.effective.toFixed(0)}°
-            </span>
-            <span style={{ fontSize: 11, color: "#555" }}>eff</span>
-          </div>
-          <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-            {formatHour(warmest.data.time)} · {getClothing(warmest.calc.effective).top}
-          </div>
-        </div>
+          ));
+        })()}
       </div>
     </div>
   );
@@ -743,6 +707,7 @@ export default function ClothingAlgo() {
   const sunsetTime = weatherData?.daily?.data?.[0]?.sunsetTime || null;
   const tomorrowSunsetTime = weatherData?.daily?.data?.[1]?.sunsetTime || null;
 
+  // 9AM-8PM slice for outfit recommendations
   const hourlySlice = useMemo(() => {
     if (!weatherData?.hourly?.data) return [];
     const startOfDay = new Date();
@@ -754,6 +719,19 @@ export default function ClothingAlgo() {
     return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
   }, [weatherData]);
 
+  // 9AM-11PM slice for timeline display
+  const todayTimelineSlice = useMemo(() => {
+    if (!weatherData?.hourly?.data) return [];
+    const startOfDay = new Date();
+    startOfDay.setHours(9, 0, 0, 0);
+    const startTs = Math.floor(startOfDay.getTime() / 1000);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 0, 0, 0);
+    const endTs = Math.floor(endOfDay.getTime() / 1000);
+    return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
+  }, [weatherData]);
+
+  // 9AM-8PM slice for tomorrow outfit recommendations
   const tomorrowHourlySlice = useMemo(() => {
     if (!weatherData?.hourly?.data) return [];
     const tomorrow = new Date();
@@ -767,17 +745,31 @@ export default function ClothingAlgo() {
     return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
   }, [weatherData]);
 
+  // 9AM-11PM slice for tomorrow timeline display
+  const tomorrowTimelineSlice = useMemo(() => {
+    if (!weatherData?.hourly?.data) return [];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const startOfTomorrow = new Date(tomorrow);
+    startOfTomorrow.setHours(9, 0, 0, 0);
+    const endOfTomorrow = new Date(tomorrow);
+    endOfTomorrow.setHours(23, 0, 0, 0);
+    const startTs = Math.floor(startOfTomorrow.getTime() / 1000);
+    const endTs = Math.floor(endOfTomorrow.getTime() / 1000);
+    return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
+  }, [weatherData]);
+
   const currentData = weatherData?.currently;
 
   const nowHourTs = useMemo(() => {
-    if (!hourlySlice.length) return null;
+    if (!todayTimelineSlice.length) return null;
     const now = Math.floor(Date.now() / 1000);
-    let closest = hourlySlice[0];
-    for (const h of hourlySlice) {
+    let closest = todayTimelineSlice[0];
+    for (const h of todayTimelineSlice) {
       if (Math.abs(h.time - now) < Math.abs(closest.time - now)) closest = h;
     }
     return closest.time;
-  }, [hourlySlice]);
+  }, [todayTimelineSlice]);
 
   const handleSaveKey = () => {
     if (keyInput.trim()) setApiKey(keyInput.trim());
@@ -1064,7 +1056,7 @@ export default function ClothingAlgo() {
                 )}
 
                 {/* Hourly timeline */}
-                {hourlySlice.length > 0 && (
+                {todayTimelineSlice.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
                     <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
                       Today's Timeline
@@ -1072,7 +1064,7 @@ export default function ClothingAlgo() {
                     <div style={{
                       display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
                     }}>
-                      {hourlySlice.map((h) => (
+                      {todayTimelineSlice.map((h) => (
                         <HourCard
                           key={h.time}
                           data={h}
@@ -1095,7 +1087,7 @@ export default function ClothingAlgo() {
                 />
 
                 {/* Tomorrow hourly timeline */}
-                {tomorrowHourlySlice.length > 0 && (
+                {tomorrowTimelineSlice.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
                     <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
                       Tomorrow's Timeline
@@ -1103,7 +1095,7 @@ export default function ClothingAlgo() {
                     <div style={{
                       display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
                     }}>
-                      {tomorrowHourlySlice.map((h) => (
+                      {tomorrowTimelineSlice.map((h) => (
                         <HourCard
                           key={h.time}
                           data={h}
