@@ -759,9 +759,9 @@ export default function ClothingAlgo() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const startOfTomorrow = new Date(tomorrow);
-    startOfTomorrow.setHours(6, 0, 0, 0);
+    startOfTomorrow.setHours(9, 0, 0, 0);
     const endOfTomorrow = new Date(tomorrow);
-    endOfTomorrow.setHours(23, 0, 0, 0);
+    endOfTomorrow.setHours(20, 0, 0, 0);
     const startTs = Math.floor(startOfTomorrow.getTime() / 1000);
     const endTs = Math.floor(endOfTomorrow.getTime() / 1000);
     return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
