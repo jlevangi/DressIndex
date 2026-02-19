@@ -78,6 +78,112 @@ function HourCard({ data, personalAdj, sunsetTime, isNow }) {
   );
 }
 
+function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetTime }) {
+  if (!hourlySlice.length) return (
+    <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 8, padding: 24, marginBottom: 20 }}>
+      <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+        Tomorrow
+      </div>
+      <div style={{ fontSize: 12, color: "#555" }}>
+        Hourly data for tomorrow is not yet available. Check back later.
+      </div>
+    </div>
+  );
+
+  const calcs = hourlySlice.map((h) => ({
+    data: h,
+    calc: computeEffective(h, personalAdj, sunsetTime),
+  }));
+
+  const coldest = calcs.reduce((min, cur) =>
+    cur.calc.effective < min.calc.effective ? cur : min
+  );
+  const warmest = calcs.reduce((max, cur) =>
+    cur.calc.effective > max.calc.effective ? cur : max
+  );
+
+  const sunsetEntry = sunsetTime ? calcs.reduce((closest, cur) =>
+    Math.abs(cur.data.time - sunsetTime) < Math.abs(closest.data.time - sunsetTime) ? cur : closest
+  ) : null;
+
+  const coldestClothing = getClothing(coldest.calc.effective);
+
+  return (
+    <div style={{
+      background: "#111", border: "1px solid #1a1a1a",
+      borderRadius: 8, padding: 24, marginBottom: 20,
+    }}>
+      <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+        Tomorrow
+      </div>
+
+      <div style={{
+        background: "rgba(249,115,22,0.08)", border: "1px solid #f9731630",
+        borderRadius: 6, padding: "12px 16px", marginBottom: 16,
+      }}>
+        <div style={{ fontSize: 13, color: "#f97316", fontWeight: 600, marginBottom: 4 }}>
+          Recommended Outfit
+        </div>
+        <div style={{ fontSize: 12, color: "#999", lineHeight: 1.5 }}>
+          At its coldest ({formatHour(coldest.data.time)}), it'll feel like{" "}
+          <span style={{ color: "#e0e0e0", fontWeight: 600 }}>{coldest.calc.effective.toFixed(0)}°F</span>
+          {" "}— bring a{" "}
+          <span style={{ color: coldestClothing.color, fontWeight: 600 }}>{coldestClothing.top}</span>
+          {" "}and{" "}
+          <span style={{ color: coldestClothing.color, fontWeight: 600 }}>{coldestClothing.bottom}</span>.
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+            Coldest
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: coldestClothing.color }}>
+              {coldest.calc.effective.toFixed(0)}°
+            </span>
+            <span style={{ fontSize: 11, color: "#555" }}>eff</span>
+          </div>
+          <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+            {formatHour(coldest.data.time)} · {coldestClothing.top}
+          </div>
+        </div>
+        {sunsetEntry && (
+          <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
+            <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+              At Sunset
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: getClothing(sunsetEntry.calc.effective).color }}>
+                {sunsetEntry.calc.effective.toFixed(0)}°
+              </span>
+              <span style={{ fontSize: 11, color: "#555" }}>eff</span>
+            </div>
+            <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+              {formatHour(sunsetEntry.data.time)} · {getClothing(sunsetEntry.calc.effective).top}
+            </div>
+          </div>
+        )}
+        <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 12, border: "1px solid #1a1a1a" }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+            Warmest
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: getClothing(warmest.calc.effective).color }}>
+              {warmest.calc.effective.toFixed(0)}°
+            </span>
+            <span style={{ fontSize: 11, color: "#555" }}>eff</span>
+          </div>
+          <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+            {formatHour(warmest.data.time)} · {getClothing(warmest.calc.effective).top}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, currentData }) {
   const now = Math.floor(Date.now() / 1000);
   const endOf9pm = new Date();
@@ -484,6 +590,7 @@ export default function ClothingAlgo() {
     () => localStorage.getItem("dressindex_notif_time")
   );
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [view, setView] = useState("today");
 
   const fetchWeather = useCallback(async (key, la, ln) => {
     if (!key) return;
@@ -634,6 +741,7 @@ export default function ClothingAlgo() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sunsetTime = weatherData?.daily?.data?.[0]?.sunsetTime || null;
+  const tomorrowSunsetTime = weatherData?.daily?.data?.[1]?.sunsetTime || null;
 
   const hourlySlice = useMemo(() => {
     if (!weatherData?.hourly?.data) return [];
@@ -643,6 +751,19 @@ export default function ClothingAlgo() {
     const endOfDay = new Date();
     endOfDay.setHours(20, 0, 0, 0);
     const endTs = Math.floor(endOfDay.getTime() / 1000);
+    return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
+  }, [weatherData]);
+
+  const tomorrowHourlySlice = useMemo(() => {
+    if (!weatherData?.hourly?.data) return [];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const startOfTomorrow = new Date(tomorrow);
+    startOfTomorrow.setHours(6, 0, 0, 0);
+    const endOfTomorrow = new Date(tomorrow);
+    endOfTomorrow.setHours(23, 0, 0, 0);
+    const startTs = Math.floor(startOfTomorrow.getTime() / 1000);
+    const endTs = Math.floor(endOfTomorrow.getTime() / 1000);
     return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
   }, [weatherData]);
 
@@ -905,39 +1026,96 @@ export default function ClothingAlgo() {
               </div>
             </div>
 
-            {/* Current conditions */}
-            {currentData && <CurrentPanel data={currentData} personalAdj={personalAdj} sunsetTime={sunsetTime} />}
+            {/* Today / Tomorrow tab switcher */}
+            <div style={{
+              display: "flex", marginBottom: 20,
+              border: "1px solid #1a1a1a", borderRadius: 6, overflow: "hidden",
+            }}>
+              {["today", "tomorrow"].map((day) => (
+                <button
+                  key={day}
+                  onClick={() => setView(day)}
+                  style={{
+                    flex: 1, padding: "8px 12px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
+                    background: view === day ? "#1a1a1a" : "transparent",
+                    color: view === day ? "#f97316" : "#555",
+                    border: "none", borderBottom: view === day ? "2px solid #f97316" : "2px solid transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  {day === "today" ? "Today" : "Tomorrow"}
+                </button>
+              ))}
+            </div>
 
-            {/* Day ahead advisory */}
-            {hourlySlice.length > 0 && currentData && (
-              <DayAheadPanel
-                hourlySlice={hourlySlice}
-                personalAdj={personalAdj}
-                sunsetTime={sunsetTime}
-                currentData={currentData}
-              />
-            )}
+            {view === "today" ? (
+              <>
+                {/* Current conditions */}
+                {currentData && <CurrentPanel data={currentData} personalAdj={personalAdj} sunsetTime={sunsetTime} />}
 
-            {/* Hourly timeline */}
-            {hourlySlice.length > 0 && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
-                  Today's Timeline
-                </div>
-                <div style={{
-                  display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
-                }}>
-                  {hourlySlice.map((h) => (
-                    <HourCard
-                      key={h.time}
-                      data={h}
-                      personalAdj={personalAdj}
-                      sunsetTime={sunsetTime}
-                      isNow={h.time === nowHourTs}
-                    />
-                  ))}
-                </div>
-              </div>
+                {/* Day ahead advisory */}
+                {hourlySlice.length > 0 && currentData && (
+                  <DayAheadPanel
+                    hourlySlice={hourlySlice}
+                    personalAdj={personalAdj}
+                    sunsetTime={sunsetTime}
+                    currentData={currentData}
+                  />
+                )}
+
+                {/* Hourly timeline */}
+                {hourlySlice.length > 0 && (
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
+                      Today's Timeline
+                    </div>
+                    <div style={{
+                      display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
+                    }}>
+                      {hourlySlice.map((h) => (
+                        <HourCard
+                          key={h.time}
+                          data={h}
+                          personalAdj={personalAdj}
+                          sunsetTime={sunsetTime}
+                          isNow={h.time === nowHourTs}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Tomorrow summary */}
+                <TomorrowSummaryPanel
+                  hourlySlice={tomorrowHourlySlice}
+                  personalAdj={personalAdj}
+                  sunsetTime={tomorrowSunsetTime}
+                />
+
+                {/* Tomorrow hourly timeline */}
+                {tomorrowHourlySlice.length > 0 && (
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
+                      Tomorrow's Timeline
+                    </div>
+                    <div style={{
+                      display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
+                    }}>
+                      {tomorrowHourlySlice.map((h) => (
+                        <HourCard
+                          key={h.time}
+                          data={h}
+                          personalAdj={personalAdj}
+                          sunsetTime={tomorrowSunsetTime}
+                          isNow={false}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Tier reference */}
