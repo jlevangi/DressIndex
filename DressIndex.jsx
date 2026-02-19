@@ -638,10 +638,10 @@ export default function ClothingAlgo() {
   const hourlySlice = useMemo(() => {
     if (!weatherData?.hourly?.data) return [];
     const startOfDay = new Date();
-    startOfDay.setHours(6, 0, 0, 0);
+    startOfDay.setHours(9, 0, 0, 0);
     const startTs = Math.floor(startOfDay.getTime() / 1000);
     const endOfDay = new Date();
-    endOfDay.setHours(23, 0, 0, 0);
+    endOfDay.setHours(20, 0, 0, 0);
     const endTs = Math.floor(endOfDay.getTime() / 1000);
     return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
   }, [weatherData]);
