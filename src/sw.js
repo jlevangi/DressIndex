@@ -80,9 +80,9 @@ async function syncConfig(config) {
 async function checkAndFireNotification() {
   try {
     const config = await getAllConfig();
-    const { notifTime, apiKey, lat, lng, personalAdj, lastNotifDate } = config;
+    const { notifTime, notifEnabled, apiKey, lat, lng, personalAdj, lastNotifDate } = config;
 
-    if (!notifTime || !apiKey) return;
+    if (!notifTime || !apiKey || notifEnabled === false) return;
 
     // Check if we already fired today
     const todayStr = new Date().toISOString().slice(0, 10);

@@ -6,7 +6,7 @@ import { formatTime12h } from "../utils.js";
 export default function SettingsModal({
   homeLocation, defaultLocPref, onSave, onSaveDefaultLocPref, onCancel,
   personalAdj, onPersonalAdjChange,
-  notifPermission, notifTime, onRequestNotifications, onSaveNotifTime,
+  notifPermission, notifTime, notifEnabled, onRequestNotifications, onSaveNotifTime, onSetNotifEnabled,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
@@ -234,7 +234,34 @@ export default function SettingsModal({
 
             {notifPermission === "granted" && (
               <>
-                {editingNotifTime ? (
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  marginBottom: notifEnabled ? 12 : 0,
+                }}>
+                  <span style={{ fontSize: 11, color: "#888" }}>Daily alerts</span>
+                  <button
+                    onClick={() => onSetNotifEnabled(!notifEnabled)}
+                    style={{
+                      background: notifEnabled ? "rgba(249,115,22,0.15)" : "transparent",
+                      border: notifEnabled ? "1px solid #f97316" : "1px solid #333",
+                      borderRadius: 6,
+                      color: notifEnabled ? "#f97316" : "#888",
+                      fontFamily: "inherit",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {notifEnabled ? "On" : "Off"}
+                  </button>
+                </div>
+
+                {!notifEnabled ? (
+                  <div style={{ fontSize: 11, color: "#666", background: "#0a0a0a", borderRadius: 6, padding: "10px 12px" }}>
+                    Notifications are disabled. Turn them back on anytime.
+                  </div>
+                ) : editingNotifTime ? (
                   <div>
                     <div style={{ fontSize: 11, color: "#666", marginBottom: 8 }}>
                       Pick a time to receive your daily outfit recommendation:

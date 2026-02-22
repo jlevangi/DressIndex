@@ -94,9 +94,9 @@ export default function ClothingAlgo() {
   const { installPrompt, isInstalled, handleInstall } = useInstall();
 
   const {
-    notifPermission, notifTime,
+    notifPermission, notifTime, notifEnabled,
     showTimePicker, setShowTimePicker,
-    handleRequestNotifications, handleSaveNotifTime,
+    handleRequestNotifications, handleSaveNotifTime, handleSetNotifEnabled,
   } = useNotifications({ weatherData, personalAdj, apiKey, lat, lng });
 
   // When notifications are just granted (showTimePicker), open settings to set time
@@ -227,6 +227,7 @@ export default function ClothingAlgo() {
             isInstalled={isInstalled}
             notifPermission={notifPermission}
             notifTime={notifTime}
+            notifEnabled={notifEnabled}
             onInstall={handleInstall}
             onRequestNotifications={handleRequestNotifications}
             onOpenSettings={() => setShowSettings(true)}
@@ -415,8 +416,10 @@ export default function ClothingAlgo() {
           onPersonalAdjChange={setPersonalAdj}
           notifPermission={notifPermission}
           notifTime={notifTime}
+          notifEnabled={notifEnabled}
           onRequestNotifications={handleRequestNotifications}
           onSaveNotifTime={handleSaveNotifTime}
+          onSetNotifEnabled={handleSetNotifEnabled}
         />
       )}
     </div>
