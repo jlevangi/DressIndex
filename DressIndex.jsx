@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { computeEffective, getClothing, getDayRecommendation } from "./src/weather-utils.js";
+import { getConfig, setConfig } from "./src/idb-config.js";
 
 const DEFAULT_HOME = { name: "Davenport, FL", lat: 28.1614, lng: -81.6137 };
 
@@ -9,6 +10,33 @@ const PRESET_LOCATIONS = [
   { label: "Miami", lat: 25.7617, lng: -80.1918, name: "Miami, FL" },
   { label: "Tampa", lat: 27.9506, lng: -82.4572, name: "Tampa, FL" },
   { label: "Cincinnati", lat: 39.1031, lng: -84.5120, name: "Cincinnati, OH" },
+];
+
+const ONBOARDING_QUESTIONS = [
+  {
+    question: "How does your body handle temperatures?",
+    answers: [
+      { label: "Always cold", points: -2 },
+      { label: "Average", points: 0 },
+      { label: "Run hot", points: +2 },
+    ],
+  },
+  {
+    question: "Typical outdoor activity level?",
+    answers: [
+      { label: "Standing / sitting", points: -1 },
+      { label: "Light walking", points: 0 },
+      { label: "Active (running, hiking)", points: +1 },
+    ],
+  },
+  {
+    question: "How used to warm weather are you?",
+    answers: [
+      { label: "Visiting from cooler climate", points: -1 },
+      { label: "1–3 years in warm weather", points: 0 },
+      { label: "Florida local 3+ years", points: +1 },
+    ],
+  },
 ];
 
 function getSkyLabel(cloudCover) {
@@ -519,6 +547,184 @@ function SettingsModal({ homeLocation, onSave, onCancel }) {
   );
 }
 
+function OnboardingSurvey({ onComplete }) {
+  const [step, setStep] = useState(0); // 0-2 = questions, 3 = result
+  const [answers, setAnswers] = useState([null, null, null]);
+
+  const totalAdj = answers.reduce((sum, a) => sum + (a ?? 0), 0);
+
+  const handleSelect = (points) => {
+    const next = [...answers];
+    next[step] = points;
+    setAnswers(next);
+    setStep(step + 1);
+  };
+
+  const handleBack = () => {
+    if (step > 0) setStep(step - 1);
+  };
+
+  const handleComplete = async () => {
+    try {
+      await setConfig("onboardingComplete", true);
+      await setConfig("personalAdj", totalAdj);
+      await setConfig("onboardingAnswers", {
+        q1: answers[0],
+        q2: answers[1],
+        q3: answers[2],
+      });
+    } catch (_) {
+      // IndexedDB failed — proceed anyway
+    }
+    onComplete(totalAdj);
+  };
+
+  const adjLabel = totalAdj > 0
+    ? "You tend to run warm — we'll nudge recommendations lighter."
+    : totalAdj < 0
+    ? "You tend to run cold — we'll nudge recommendations warmer."
+    : "You're right in the middle — standard recommendations for you.";
+
+  return (
+    <div style={{
+      minHeight: "100vh", background: "#0a0a0a", color: "#e0e0e0",
+      fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", padding: 24,
+    }}>
+      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet" />
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        {/* Step indicator */}
+        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 32 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} style={{
+              width: i <= step ? 24 : 8, height: 4, borderRadius: 2,
+              background: i <= step ? "#f97316" : "#333",
+              transition: "all 0.3s ease",
+            }} />
+          ))}
+        </div>
+
+        {step < 3 ? (
+          <>
+            <div style={{
+              fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase",
+              marginBottom: 8, textAlign: "center",
+            }}>
+              Question {step + 1} of 3
+            </div>
+            <div style={{
+              fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
+              marginBottom: 32, lineHeight: 1.4,
+            }}>
+              {ONBOARDING_QUESTIONS[step].question}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {ONBOARDING_QUESTIONS[step].answers.map((ans) => {
+                const isSelected = answers[step] === ans.points;
+                return (
+                  <button
+                    key={ans.label}
+                    onClick={() => handleSelect(ans.points)}
+                    style={{
+                      padding: "14px 20px", fontSize: 14, fontFamily: "inherit", fontWeight: 500,
+                      background: isSelected ? "rgba(249,115,22,0.15)" : "#111",
+                      border: isSelected ? "1px solid #f97316" : "1px solid #1a1a1a",
+                      borderRadius: 8, color: isSelected ? "#f97316" : "#ccc",
+                      cursor: "pointer", textAlign: "left",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {ans.label}
+                  </button>
+                );
+              })}
+            </div>
+            {step > 0 && (
+              <button
+                onClick={handleBack}
+                style={{
+                  marginTop: 20, background: "transparent", border: "none",
+                  color: "#555", fontSize: 12, fontFamily: "inherit",
+                  cursor: "pointer", padding: "8px 0",
+                }}
+              >
+                Back
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <div style={{
+              fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase",
+              marginBottom: 8, textAlign: "center",
+            }}>
+              Your Profile
+            </div>
+            <div style={{
+              fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
+              marginBottom: 12,
+            }}>
+              Personal Adjustment
+            </div>
+            <div style={{
+              fontSize: 48, fontWeight: 700, color: "#f97316", textAlign: "center",
+              marginBottom: 8,
+            }}>
+              {totalAdj > 0 ? "+" : ""}{totalAdj}°F
+            </div>
+            <div style={{
+              fontSize: 13, color: "#888", textAlign: "center",
+              marginBottom: 32, lineHeight: 1.5, maxWidth: 320, margin: "0 auto 32px",
+            }}>
+              {adjLabel}
+            </div>
+            <div style={{
+              background: "#111", border: "1px solid #1a1a1a", borderRadius: 8,
+              padding: 16, marginBottom: 24,
+            }}>
+              <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>Your answers:</div>
+              {ONBOARDING_QUESTIONS.map((q, i) => {
+                const selected = q.answers.find((a) => a.points === answers[i]);
+                return (
+                  <div key={i} style={{
+                    fontSize: 12, color: "#888", marginBottom: 4, lineHeight: 1.5,
+                  }}>
+                    <span style={{ color: "#555" }}>{i + 1}.</span> {selected?.label}
+                    <span style={{ color: "#f97316", marginLeft: 6 }}>
+                      {answers[i] > 0 ? "+" : ""}{answers[i]}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              onClick={handleComplete}
+              style={{
+                width: "100%", padding: "14px 20px", fontSize: 14, fontFamily: "inherit",
+                fontWeight: 600, background: "#f97316", color: "#000", border: "none",
+                borderRadius: 8, cursor: "pointer",
+              }}
+            >
+              Get Started
+            </button>
+            <button
+              onClick={handleBack}
+              style={{
+                width: "100%", marginTop: 10, background: "transparent", border: "none",
+                color: "#555", fontSize: 12, fontFamily: "inherit",
+                cursor: "pointer", padding: "8px 0",
+              }}
+            >
+              Back
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function ClothingAlgo() {
   const envKey = window.__CONFIG__?.PIRATE_WEATHER_API_KEY || import.meta.env.VITE_PIRATE_WEATHER_API_KEY || "";
   const [apiKey, setApiKey] = useState(envKey);
@@ -533,6 +739,7 @@ export default function ClothingAlgo() {
   const [lng, setLng] = useState(null);
   const [locationName, setLocationName] = useState(null);
   const [personalAdj, setPersonalAdj] = useState(0);
+  const [onboardingDone, setOnboardingDone] = useState(null); // null=loading, true/false
   const [showSettings, setShowSettings] = useState(false);
 
   const locations = useMemo(() => [
@@ -575,6 +782,43 @@ export default function ClothingAlgo() {
       setLoading(false);
     }
   }, []);
+
+  // Load onboarding state + persisted personalAdj from IndexedDB
+  useEffect(() => {
+    (async () => {
+      try {
+        const done = await getConfig("onboardingComplete");
+        if (done) {
+          const savedAdj = await getConfig("personalAdj");
+          if (typeof savedAdj === "number") setPersonalAdj(savedAdj);
+          setOnboardingDone(true);
+        } else {
+          // Existing users: detect via localStorage to skip onboarding
+          const hasHome = localStorage.getItem("dressindex_home");
+          if (hasHome) {
+            await setConfig("onboardingComplete", true).catch(() => {});
+            setOnboardingDone(true);
+          } else {
+            setOnboardingDone(false);
+          }
+        }
+      } catch (_) {
+        // IndexedDB unavailable — skip onboarding, use default adj
+        setOnboardingDone(true);
+      }
+    })();
+  }, []);
+
+  // Debounced persist of personalAdj to IndexedDB
+  const adjDebounceRef = useRef(null);
+  useEffect(() => {
+    if (onboardingDone !== true) return;
+    clearTimeout(adjDebounceRef.current);
+    adjDebounceRef.current = setTimeout(() => {
+      setConfig("personalAdj", personalAdj).catch(() => {});
+    }, 500);
+    return () => clearTimeout(adjDebounceRef.current);
+  }, [personalAdj, onboardingDone]);
 
   // Auto-geolocate on mount
   useEffect(() => {
@@ -830,6 +1074,22 @@ export default function ClothingAlgo() {
     fireClothingNotification();
   };
 
+  // Onboarding render gating
+  if (onboardingDone === null) {
+    return <div style={{ minHeight: "100vh", background: "#0a0a0a" }} />;
+  }
+
+  if (onboardingDone === false) {
+    return (
+      <OnboardingSurvey
+        onComplete={(adj) => {
+          setPersonalAdj(adj);
+          setOnboardingDone(true);
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{
       minHeight: "100vh",
@@ -1014,7 +1274,7 @@ export default function ClothingAlgo() {
                 style={{ width: "100%", accentColor: "#f97316" }}
               />
               <div style={{ fontSize: 11, color: "#555", marginTop: 2, textAlign: "center" }}>
-                ← Feeling colder today&nbsp;&nbsp;|&nbsp;&nbsp;Feeling warmer today →
+                ← I run cold&nbsp;&nbsp;|&nbsp;&nbsp;I run hot →
               </div>
             </div>
 
@@ -1116,13 +1376,13 @@ export default function ClothingAlgo() {
                 <div style={{ fontSize: 10, color: "#444", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Tier Map</div>
                 {[
                   { label: "Topless + Speedo", range: "≥ 85°F", min: 85, max: Infinity, color: "#ec4899" },
-                  { label: "T-Shirt + Shorts", range: "72 – 85°F", min: 72, max: 85, color: "#22c55e" },
-                  { label: "Crew Neck + Shorts", range: "66 – 72°F", min: 66, max: 72, color: "#eab308" },
-                  { label: "Light Jacket + Shorts", range: "60 – 66°F", min: 60, max: 66, color: "#f97316" },
-                  { label: "Light Jacket + Pants", range: "56 – 60°F", min: 56, max: 60, color: "#ea580c" },
-                  { label: "Hoodie + Pants", range: "40 – 56°F", min: 40, max: 56, color: "#ef4444" },
-                  { label: "Medium Coat + Pants", range: "32 – 40°F", min: 32, max: 40, color: "#3b82f6" },
-                  { label: "Winter Coat + Pants", range: "< 32°F", min: -Infinity, max: 32, color: "#8b5cf6" },
+                  { label: "T-Shirt + Shorts", range: "70 – 85°F", min: 70, max: 85, color: "#22c55e" },
+                  { label: "Crew Neck + Shorts", range: "64 – 70°F", min: 64, max: 70, color: "#eab308" },
+                  { label: "Light Jacket + Shorts", range: "58 – 64°F", min: 58, max: 64, color: "#f97316" },
+                  { label: "Light Jacket + Pants", range: "54 – 58°F", min: 54, max: 58, color: "#ea580c" },
+                  { label: "Hoodie + Pants", range: "38 – 54°F", min: 38, max: 54, color: "#ef4444" },
+                  { label: "Medium Coat + Pants", range: "30 – 38°F", min: 30, max: 38, color: "#3b82f6" },
+                  { label: "Winter Coat + Pants", range: "< 30°F", min: -Infinity, max: 30, color: "#8b5cf6" },
                 ].map((tier) => {
                   const eff = computeEffective(currentData, personalAdj, sunsetTime).effective;
                   const isActive = eff >= tier.min && eff < tier.max;
