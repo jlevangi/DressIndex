@@ -31,7 +31,7 @@ export default function useNotifications({ weatherData, personalAdj, apiKey, lat
       });
     } else {
       try {
-        new Notification("DressIndex", { body, tag: "daily-clothing", icon: "/pwa-192x192.png" });
+        new Notification("DressIndex", { body, tag: "daily-clothing", icon: "/appicon.svg" });
       } catch (_) {
         // Notification constructor not available in this context
       }
