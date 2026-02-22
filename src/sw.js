@@ -1,6 +1,7 @@
 import { precacheAndRoute } from 'workbox-precaching';
 import { getConfig, setConfig, getAllConfig } from './idb-config.js';
 import { computeEffective, getClothing, getDayRecommendation } from './weather-utils.js';
+import { INSTALL_ICON_192 } from './pwa-icons.js';
 
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -14,10 +15,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? { title: 'DressIndex', body: 'New notification' };
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: '/appicon.svg',
-    })
+        self.registration.showNotification(data.title, {
+          body: data.body,
+          icon: INSTALL_ICON_192,
+        })
   );
 });
 
@@ -27,7 +28,7 @@ self.addEventListener('message', (event) => {
     event.waitUntil(
       self.registration.showNotification(event.data.title || 'DressIndex', {
         body: event.data.body || '',
-        icon: '/appicon.svg',
+        icon: INSTALL_ICON_192,
         tag: 'daily-clothing',
       })
     );
@@ -120,7 +121,7 @@ async function checkAndFireNotification() {
 
     await self.registration.showNotification('DressIndex', {
       body,
-      icon: '/appicon.svg',
+      icon: INSTALL_ICON_192,
       tag: 'daily-clothing',
     });
 

@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
+  const iconVersion = env.VITE_ICON_VERSION || '20260222-2'
   const allowedHosts = env.VITE_ALLOWED_HOSTS
     ? env.VITE_ALLOWED_HOSTS.split(',').map(h => h.trim())
     : []
@@ -31,9 +32,20 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
           icons: [
             {
-              src: 'appicon.svg',
-              sizes: 'any',
-              type: 'image/svg+xml',
+              src: `icons/icon-192-v${iconVersion}.png`,
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: `icons/icon-512-v${iconVersion}.png`,
+              sizes: '512x512',
+              type: 'image/png',
+            },
+            {
+              src: `icons/icon-maskable-512-v${iconVersion}.png`,
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
             },
           ],
         },
