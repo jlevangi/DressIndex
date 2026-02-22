@@ -1,8 +1,8 @@
 export default function ViewSwitcher({ view, onViewChange }) {
   return (
     <div style={{
-      display: "flex", marginBottom: 20,
-      border: "1px solid #1a1a1a", borderRadius: 6, overflow: "hidden",
+      display: "flex",
+      border: "1px solid #1a1a1a", borderRadius: 6, overflow: "hidden", flex: 1,
     }}>
       {["today", "tomorrow"].map((day) => (
         <button

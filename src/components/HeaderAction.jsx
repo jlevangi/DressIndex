@@ -1,7 +1,6 @@
-import NotifTimePicker from "./NotifTimePicker.jsx";
 import { formatTime12h } from "../utils.js";
 
-export default function HeaderAction({ installPrompt, isInstalled, notifPermission, notifTime, showTimePicker, onInstall, onRequestNotifications, onSaveNotifTime, onEditTime, onCancelEdit }) {
+export default function HeaderAction({ installPrompt, isInstalled, notifPermission, notifTime, onInstall, onRequestNotifications, onOpenSettings }) {
   if (installPrompt && !isInstalled) {
     return (
       <button onClick={onInstall} style={{
@@ -35,22 +34,34 @@ export default function HeaderAction({ installPrompt, isInstalled, notifPermissi
     );
   }
 
-  if (notifPermission === "granted" && (showTimePicker || !notifTime)) {
-    return <NotifTimePicker initialTime={notifTime || "07:00"} onSave={onSaveNotifTime} onCancel={notifTime ? onCancelEdit : undefined} />;
-  }
-
   if (notifPermission === "granted" && notifTime) {
     return (
-      <button onClick={onEditTime} style={{
+      <button onClick={onOpenSettings} style={{
         display: "flex", alignItems: "center", gap: 5, background: "transparent",
-        border: "1px solid #333", borderRadius: 6, color: "#888", fontFamily: "inherit",
-        fontSize: 11, padding: "6px 10px", cursor: "pointer", whiteSpace: "nowrap",
+        border: "1px solid #2a2a2a", borderRadius: 6, color: "#666", fontFamily: "inherit",
+        fontSize: 11, padding: "5px 10px", cursor: "pointer", whiteSpace: "nowrap",
       }}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#555">
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 01-3.46 0" />
         </svg>
         {formatTime12h(notifTime)}
+      </button>
+    );
+  }
+
+  if (notifPermission === "granted" && !notifTime) {
+    return (
+      <button onClick={onOpenSettings} style={{
+        display: "flex", alignItems: "center", gap: 5, background: "transparent",
+        border: "1px solid #333", borderRadius: 6, color: "#888", fontFamily: "inherit",
+        fontSize: 11, padding: "5px 10px", cursor: "pointer", whiteSpace: "nowrap",
+      }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+        Set time
       </button>
     );
   }
