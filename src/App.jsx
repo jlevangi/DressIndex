@@ -270,8 +270,8 @@ export default function ClothingAlgo() {
                 style={{
                   display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
                   background: adjIsNonZero ? "rgba(249,115,22,0.1)" : "#111",
-                  border: adjIsNonZero ? "1px solid rgba(249,115,22,0.5)" : "1px solid #222",
-                  borderRadius: 6, padding: "5px 10px", cursor: "pointer", fontFamily: "inherit",
+                  border: adjIsNonZero ? "1px solid rgba(249,115,22,0.5)" : "1px solid #1a1a1a",
+                  borderRadius: 6, padding: "8px 12px", cursor: "pointer", fontFamily: "inherit",
                   color: adjIsNonZero ? "#f97316" : "#555", fontSize: 11, fontWeight: adjIsNonZero ? 700 : 400,
                   transition: "all 0.15s ease",
                 }}
