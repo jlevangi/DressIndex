@@ -55,12 +55,12 @@ export function computeEffective(data, personalAdj, sunsetTime) {
 export function getClothing(eff) {
   let top, bottom, color;
   if (eff >= 85)      { top = "Topless";      bottom = "Speedo"; color = "#ec4899"; }
-  else if (eff >= 72) { top = "T-Shirt";      bottom = "Shorts"; color = "#22c55e"; }
-  else if (eff >= 66) { top = "Crew Neck";    bottom = "Shorts"; color = "#eab308"; }
-  else if (eff >= 60) { top = "Light Jacket"; bottom = "Shorts"; color = "#f97316"; }
-  else if (eff >= 56) { top = "Light Jacket"; bottom = "Pants";  color = "#ea580c"; }
-  else if (eff >= 40) { top = "Hoodie";       bottom = "Pants";  color = "#ef4444"; }
-  else if (eff >= 32) { top = "Medium Coat";  bottom = "Pants";  color = "#3b82f6"; }
+  else if (eff >= 70) { top = "T-Shirt";      bottom = "Shorts"; color = "#22c55e"; }
+  else if (eff >= 64) { top = "Crew Neck";    bottom = "Shorts"; color = "#eab308"; }
+  else if (eff >= 58) { top = "Light Jacket"; bottom = "Shorts"; color = "#f97316"; }
+  else if (eff >= 54) { top = "Light Jacket"; bottom = "Pants";  color = "#ea580c"; }
+  else if (eff >= 38) { top = "Hoodie";       bottom = "Pants";  color = "#ef4444"; }
+  else if (eff >= 30) { top = "Medium Coat";  bottom = "Pants";  color = "#3b82f6"; }
   else                { top = "Winter Coat";  bottom = "Pants";  color = "#8b5cf6"; }
   return { top, bottom, color };
 }
@@ -98,7 +98,7 @@ export function getDayRecommendation(hourlyData, personalAdj, sunsetTime, startH
       coldestEff = calc.effective;
       coldestHour = h;
     }
-    if (h.time < tenPMTs && calc.effective < 60) {
+    if (h.time < tenPMTs && calc.effective < 58) {
       needsPants = true;
     }
   }
