@@ -23,51 +23,45 @@ const brandHeaderStyles = {
   row: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 32,
+    alignItems: "center",
+    marginBottom: 20,
   },
   brand: {
     display: "flex",
-    alignItems: "flex-start",
-    gap: 12,
+    alignItems: "center",
+    gap: 10,
     minWidth: 0,
-    flex: "1 1 320px",
   },
   iconWrap: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   icon: {
-    width: 56,
-    height: 56,
+    width: 40,
+    height: 40,
     display: "block",
   },
+  titleGroup: {
+    minWidth: 0,
+  },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 700,
     color: "#f0f0f0",
     letterSpacing: -0.5,
     lineHeight: 1.1,
-    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 12,
-    color: "#8a8a8a",
+    fontSize: 10,
+    color: "#555",
     letterSpacing: 0.2,
-    lineHeight: 1.35,
-  },
-  accent: {
-    width: 40,
-    height: 2,
-    background: "#f97316",
-    marginTop: 8,
+    lineHeight: 1.3,
+    marginTop: 2,
   },
 };
 
@@ -79,6 +73,7 @@ export default function ClothingAlgo() {
   const [onboardingDone, setOnboardingDone] = useState(null); // null=loading, true/false
   const [defaultLocPref, setDefaultLocPref] = useState(null);
   const [view, setView] = useState("today");
+  const [showAdjPopup, setShowAdjPopup] = useState(false);
 
   const {
     homeLocation, lat, lng, locationName,
@@ -103,6 +98,13 @@ export default function ClothingAlgo() {
     showTimePicker, setShowTimePicker,
     handleRequestNotifications, handleSaveNotifTime,
   } = useNotifications({ weatherData, personalAdj, apiKey, lat, lng });
+
+  // When notifications are just granted (showTimePicker), open settings to set time
+  useEffect(() => {
+    if (showTimePicker) {
+      setShowSettings(true);
+    }
+  }, [showTimePicker, setShowSettings]);
 
   // Load onboarding state + persisted personalAdj from IndexedDB
   useEffect(() => {
@@ -170,14 +172,9 @@ export default function ClothingAlgo() {
               <div style={brandHeaderStyles.iconWrap}>
                 <img src="/appicon.svg" alt="" aria-hidden="true" style={brandHeaderStyles.icon} />
               </div>
-              <div>
-                <div style={brandHeaderStyles.title}>
-                  DressIndex
-                </div>
-                <div style={brandHeaderStyles.subtitle}>
-                  Data Driven Clothing Decision Index
-                </div>
-                <div style={brandHeaderStyles.accent} />
+              <div style={brandHeaderStyles.titleGroup}>
+                <div style={brandHeaderStyles.title}>DressIndex</div>
+                <div style={brandHeaderStyles.subtitle}>Data Driven Clothing Decision Index</div>
               </div>
             </div>
           </div>
@@ -200,51 +197,47 @@ export default function ClothingAlgo() {
     );
   }
 
+  const adjLabel = personalAdj > 0 ? `+${personalAdj}°F` : personalAdj < 0 ? `${personalAdj}°F` : "0°F";
+  const adjIsNonZero = personalAdj !== 0;
+
   return (
-      <div style={{
-        minHeight: "100vh",
-        background: "#0a0a0a",
-        color: "#e0e0e0",
-        fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-        padding: "32px 16px",
-      }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "#0a0a0a",
+      color: "#e0e0e0",
+      fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+      padding: "24px 16px",
+    }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet" />
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
+
+        {/* ── Header ── */}
         <div style={brandHeaderStyles.row}>
           <div style={brandHeaderStyles.brand}>
             <div style={brandHeaderStyles.iconWrap}>
               <img src="/appicon.svg" alt="" aria-hidden="true" style={brandHeaderStyles.icon} />
             </div>
-            <div>
-              <div style={brandHeaderStyles.title}>
-                DressIndex
-              </div>
-              <div style={brandHeaderStyles.subtitle}>
-                Data Driven Clothing Decision Index
-              </div>
-              <div style={brandHeaderStyles.accent} />
+            <div style={brandHeaderStyles.titleGroup}>
+              <div style={brandHeaderStyles.title}>DressIndex</div>
+              <div style={brandHeaderStyles.subtitle}>Data Driven Clothing Decision Index</div>
             </div>
           </div>
-          <div style={{ marginLeft: "auto" }}>
-            <HeaderAction
-              installPrompt={installPrompt}
-              isInstalled={isInstalled}
-              notifPermission={notifPermission}
-              notifTime={notifTime}
-              showTimePicker={showTimePicker}
-              onInstall={handleInstall}
-              onRequestNotifications={handleRequestNotifications}
-              onSaveNotifTime={handleSaveNotifTime}
-              onEditTime={() => setShowTimePicker(true)}
-              onCancelEdit={() => setShowTimePicker(false)}
-            />
-          </div>
+          <HeaderAction
+            installPrompt={installPrompt}
+            isInstalled={isInstalled}
+            notifPermission={notifPermission}
+            notifTime={notifTime}
+            onInstall={handleInstall}
+            onRequestNotifications={handleRequestNotifications}
+            onOpenSettings={() => setShowSettings(true)}
+          />
         </div>
 
         {!apiKey ? (
           <ApiKeyEntry keyInput={keyInput} onKeyInputChange={setKeyInput} onSaveKey={handleSaveKey} />
         ) : (
           <>
+            {/* ── Location bar ── */}
             <LocationBar
               locationName={locationName}
               lastFetch={lastFetch}
@@ -266,8 +259,30 @@ export default function ClothingAlgo() {
               </div>
             )}
 
-            <PersonalAdjSlider value={personalAdj} onChange={setPersonalAdj} />
-            <ViewSwitcher view={view} onViewChange={setView} />
+            {/* ── View switcher + personal adj badge ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+              <ViewSwitcher view={view} onViewChange={setView} />
+
+              {/* Personal adjustment pill — click to open slider popup */}
+              <button
+                onClick={() => setShowAdjPopup(true)}
+                title="Personal temperature adjustment — click to edit"
+                style={{
+                  display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
+                  background: adjIsNonZero ? "rgba(249,115,22,0.1)" : "#111",
+                  border: adjIsNonZero ? "1px solid rgba(249,115,22,0.5)" : "1px solid #1a1a1a",
+                  borderRadius: 6, padding: "8px 12px", cursor: "pointer", fontFamily: "inherit",
+                  color: adjIsNonZero ? "#f97316" : "#555", fontSize: 11, fontWeight: adjIsNonZero ? 700 : 400,
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 7H4M16 12H4M12 17H4" />
+                </svg>
+                {adjLabel}
+              </button>
+            </div>
+
             {!currentData && !error && (
               <>
                 <LoadingSpinner message={lat === null ? "Locating..." : "Fetching weather..."} />
@@ -341,13 +356,67 @@ export default function ClothingAlgo() {
           </>
         )}
       </div>
+
+      {/* ── Personal Adjustment Popup ── */}
+      {showAdjPopup && (
+        <div
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex",
+            alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16,
+          }}
+          onClick={() => setShowAdjPopup(false)}
+        >
+          <div
+            style={{
+              background: "#111", border: "1px solid #333", borderRadius: 10, padding: 24,
+              width: "100%", maxWidth: 320,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#f0f0f0" }}>Personal Adjustment</div>
+              <div style={{
+                fontSize: 20, fontWeight: 700,
+                color: adjIsNonZero ? "#f97316" : "#888",
+              }}>
+                {adjLabel}
+              </div>
+            </div>
+
+            <PersonalAdjSlider value={personalAdj} onChange={setPersonalAdj} />
+
+            <div style={{ fontSize: 11, color: "#555", marginTop: 12, lineHeight: 1.5 }}>
+              Shifts the effective temperature up or down to match how <em>you</em> personally feel the weather.
+            </div>
+
+            <button
+              onClick={() => setShowAdjPopup(false)}
+              style={{
+                marginTop: 18, width: "100%", padding: "9px 0", background: "#f97316",
+                border: "none", borderRadius: 6, color: "#000", fontFamily: "inherit",
+                fontSize: 12, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Settings Modal ── */}
       {showSettings && (
         <SettingsModal
           homeLocation={homeLocation}
           defaultLocPref={defaultLocPref || "gps"}
           onSave={handleSaveHome}
           onSaveDefaultLocPref={handleSaveDefaultLocPref}
-          onCancel={() => setShowSettings(false)}
+          onCancel={() => { setShowSettings(false); setShowTimePicker(false); }}
+          personalAdj={personalAdj}
+          onPersonalAdjChange={setPersonalAdj}
+          notifPermission={notifPermission}
+          notifTime={notifTime}
+          onRequestNotifications={handleRequestNotifications}
+          onSaveNotifTime={handleSaveNotifTime}
         />
       )}
     </div>
