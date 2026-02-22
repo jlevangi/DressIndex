@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { setConfig } from "../idb-config.js";
 import { ONBOARDING_QUESTIONS } from "../constants.js";
+import { searchCity, reverseGeocode } from "../geocode.js";
 
 export default function OnboardingSurvey({ onComplete }) {
-  const [step, setStep] = useState(0); // 0-2 = questions, 3 = result
+  const [step, setStep] = useState(0); // 0-2 = questions, 3 = home location, 4 = result
   const [answers, setAnswers] = useState([null, null, null]);
+  const [homeChoice, setHomeChoice] = useState(null);
+  const [homeSet, setHomeSet] = useState(false);
+  const [defaultPref, setDefaultPref] = useState("gps");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   const totalAdj = answers.reduce((sum, a) => sum + (a ?? 0), 0);
 
@@ -19,7 +27,60 @@ export default function OnboardingSurvey({ onComplete }) {
     if (step > 0) setStep(step - 1);
   };
 
+  const handleSearch = async () => {
+    setSearchError("");
+    setSearchResults([]);
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchError("Enter at least 2 characters.");
+      return;
+    }
+
+    setSearching(true);
+    const results = await searchCity(query);
+    setSearching(false);
+    setSearchResults(results);
+    if (!results.length) {
+      setSearchError("No results found.");
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setSearchError("Geolocation unavailable.");
+      return;
+    }
+    setSearchError("");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = +pos.coords.latitude.toFixed(4);
+        const lng = +pos.coords.longitude.toFixed(4);
+        const name = (await reverseGeocode(lat, lng)) || "Current Location";
+        setHomeChoice({ name, lat, lng });
+      },
+      () => setSearchError("Unable to read GPS location.")
+    );
+  };
+
+  const handleContinueHome = () => {
+    if (homeChoice) {
+      setHomeSet(true);
+    } else {
+      setHomeSet(false);
+      setDefaultPref("gps");
+    }
+    setStep(4);
+  };
+
+  const handleSkipHome = () => {
+    setHomeChoice(null);
+    setHomeSet(false);
+    setDefaultPref("gps");
+    setStep(4);
+  };
+
   const handleComplete = async () => {
+    const resolvedDefaultPref = homeSet ? defaultPref : "gps";
     try {
       await setConfig("onboardingComplete", true);
       await setConfig("personalAdj", totalAdj);
@@ -28,10 +89,11 @@ export default function OnboardingSurvey({ onComplete }) {
         q2: answers[1],
         q3: answers[2],
       });
+      await setConfig("defaultLocationPref", resolvedDefaultPref);
     } catch (_) {
       // IndexedDB failed — proceed anyway
     }
-    onComplete(totalAdj);
+    onComplete(totalAdj, homeSet ? homeChoice : null, resolvedDefaultPref);
   };
 
   const adjLabel = totalAdj > 0
@@ -51,7 +113,7 @@ export default function OnboardingSurvey({ onComplete }) {
       <div style={{ width: "100%", maxWidth: 400 }}>
         {/* Step indicator */}
         <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 32 }}>
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3, 4].map((i) => (
             <div key={i} style={{
               width: i <= step ? 24 : 8, height: 4, borderRadius: 2,
               background: i <= step ? "#f97316" : "#333",
@@ -108,6 +170,151 @@ export default function OnboardingSurvey({ onComplete }) {
               </button>
             )}
           </>
+        ) : step === 3 ? (
+          <>
+            <div style={{
+              fontSize: 11, color: "#f97316", letterSpacing: 3, textTransform: "uppercase",
+              marginBottom: 8, textAlign: "center", fontWeight: 700,
+            }}>
+              Optional
+            </div>
+            <div style={{
+              fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
+              marginBottom: 8,
+            }}>
+              Set Your Home Location
+            </div>
+            <div style={{
+              fontSize: 12, color: "#777", textAlign: "center",
+              marginBottom: 20, lineHeight: 1.5,
+            }}>
+              Used as your fallback when GPS is unavailable.
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search city"
+                style={{
+                  flex: 1, padding: "10px 12px", background: "#111", border: "1px solid #1a1a1a",
+                  borderRadius: 8, color: "#e0e0e0", fontFamily: "inherit", fontSize: 13, outline: "none",
+                }}
+              />
+              <button
+                onClick={handleSearch}
+                disabled={searching}
+                style={{
+                  background: "transparent", border: "1px solid #333", borderRadius: 8,
+                  color: searching ? "#444" : "#ccc", fontFamily: "inherit", fontSize: 12, fontWeight: 600,
+                  padding: "10px 12px", cursor: searching ? "default" : "pointer",
+                }}
+              >
+                {searching ? "..." : "Search"}
+              </button>
+            </div>
+
+            {searchResults.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
+                {searchResults.map((result) => {
+                  const isSelected = homeChoice?.lat === result.lat && homeChoice?.lng === result.lng;
+                  return (
+                    <button
+                      key={`${result.name}:${result.lat}:${result.lng}`}
+                      onClick={() => setHomeChoice(result)}
+                      style={{
+                        padding: "10px 14px",
+                        fontSize: 13,
+                        fontFamily: "inherit",
+                        fontWeight: 500,
+                        background: isSelected ? "rgba(249,115,22,0.15)" : "#111",
+                        border: isSelected ? "1px solid #f97316" : "1px solid #1a1a1a",
+                        borderRadius: 8,
+                        color: isSelected ? "#f97316" : "#ccc",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      {result.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {searchError && (
+              <div style={{ fontSize: 12, color: "#ef4444", marginBottom: 10 }}>
+                {searchError}
+              </div>
+            )}
+
+            <button
+              onClick={handleUseCurrentLocation}
+              style={{
+                marginBottom: 12, background: "transparent", border: "1px solid #333", borderRadius: 8,
+                color: "#888", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 10px",
+              }}
+            >
+              Use Current Location
+            </button>
+
+            {homeChoice && (
+              <div style={{
+                background: "#111", border: "1px solid #1a1a1a", borderRadius: 8,
+                padding: 12, marginBottom: 12,
+              }}>
+                <div style={{ fontSize: 11, color: "#22c55e", marginBottom: 4 }}>
+                  \u2713 Selected
+                </div>
+                <div style={{ fontSize: 13, color: "#f0f0f0", fontWeight: 600 }}>
+                  {homeChoice.name}
+                </div>
+              </div>
+            )}
+
+            <label style={{
+              display: "flex", alignItems: "center", gap: 8, marginBottom: 20,
+              color: homeChoice ? "#ccc" : "#666", fontSize: 12,
+            }}>
+              <input
+                type="checkbox"
+                checked={defaultPref === "home"}
+                disabled={!homeChoice}
+                onChange={(e) => setDefaultPref(e.target.checked ? "home" : "gps")}
+              />
+              Use Home as default on startup
+            </label>
+
+            <button
+              onClick={handleContinueHome}
+              style={{
+                width: "100%", padding: "14px 20px", fontSize: 14, fontFamily: "inherit",
+                fontWeight: 600, background: "#f97316", color: "#000", border: "none",
+                borderRadius: 8, cursor: "pointer",
+              }}
+            >
+              Continue
+            </button>
+            <button
+              onClick={handleSkipHome}
+              style={{
+                width: "100%", marginTop: 10, background: "transparent", border: "none",
+                color: "#666", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 0",
+              }}
+            >
+              Skip
+            </button>
+            <button
+              onClick={handleBack}
+              style={{
+                width: "100%", marginTop: 4, background: "transparent", border: "none",
+                color: "#555", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 0",
+              }}
+            >
+              Back
+            </button>
+          </>
         ) : (
           <>
             <div style={{
@@ -152,6 +359,11 @@ export default function OnboardingSurvey({ onComplete }) {
                   </div>
                 );
               })}
+              {homeSet && homeChoice && (
+                <div style={{ fontSize: 12, color: "#888", marginTop: 8, lineHeight: 1.5 }}>
+                  <span style={{ color: "#555" }}>Home:</span> {homeChoice.name}
+                </div>
+              )}
             </div>
             <button
               onClick={handleComplete}
