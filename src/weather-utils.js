@@ -54,7 +54,7 @@ export function computeEffective(data, personalAdj, sunsetTime) {
 
 export function getClothing(eff) {
   let top, bottom, color;
-  if (eff >= 83)      { top = "Topless";      bottom = "Speedo"; color = "#ec4899"; }
+  if (eff >= 85)      { top = "Topless";      bottom = "Speedo"; color = "#ec4899"; }
   else if (eff >= 70) { top = "T-Shirt";      bottom = "Shorts"; color = "#22c55e"; }
   else if (eff >= 64) { top = "Crew Neck";    bottom = "Shorts"; color = "#eab308"; }
   else if (eff >= 58) { top = "Light Jacket"; bottom = "Shorts"; color = "#f97316"; }
