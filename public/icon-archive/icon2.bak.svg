@@ -1,0 +1,28 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .fg { stroke: #EAF1FF; }
+      .fg-soft { stroke: #EAF1FF; opacity: 0.76; }
+      .fill-soft { fill: #EAF1FF; opacity: 0.14; }
+    </style>
+  </defs>
+
+  <rect x="32" y="32" width="960" height="960" rx="208" fill="#0C1322"/>
+  <rect x="84" y="84" width="856" height="856" rx="172" stroke="#EAF1FF" opacity="0.22" stroke-width="12"/>
+
+  <path class="fg" d="M432 744V586L398 612L334 550L426 470L466 510H558L598 470L690 550L626 612L592 586V744H432Z" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="fg" d="M466 510L512 560L558 510" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="fg" d="M512 560V744" stroke-width="14" stroke-linecap="round"/>
+  <circle class="fg-soft" cx="512" cy="610" r="7" stroke-width="6"/>
+  <circle class="fg-soft" cx="512" cy="650" r="7" stroke-width="6"/>
+  <circle class="fg-soft" cx="512" cy="690" r="7" stroke-width="6"/>
+
+  <circle class="fg-soft" cx="236" cy="236" r="54" stroke-width="24"/>
+
+  <path class="fill-soft" d="M612 272C612 240 638 214 670 214C678 214 686 216 693 219C703 195 726 180 752 180C785 180 812 206 812 239C812 243 812 247 811 251C830 257 844 274 844 294C844 319 824 339 799 339H668C637 339 612 314 612 283V272Z"/>
+  <path class="fg-soft" d="M612 272C612 240 638 214 670 214C678 214 686 216 693 219C703 195 726 180 752 180C785 180 812 206 812 239C812 243 812 247 811 251C830 257 844 274 844 294C844 319 824 339 799 339H668C637 339 612 314 612 283V272Z" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path class="fg-soft" d="M678 398V440" stroke-width="16" stroke-linecap="round"/>
+  <path class="fg-soft" d="M724 404V448" stroke-width="16" stroke-linecap="round"/>
+  <path class="fg-soft" d="M770 396V438" stroke-width="16" stroke-linecap="round"/>
+</svg>

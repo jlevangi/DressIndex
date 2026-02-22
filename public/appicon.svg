@@ -1,0 +1,14 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .fg { stroke: #EAF1FF; }
+      .fg-soft { stroke: #EAF1FF; opacity: 0.76; }
+      .fill-soft { fill: #EAF1FF; opacity: 0.14; }
+    </style>
+  </defs>
+
+  <rect x="32" y="32" width="960" height="960" rx="208" fill="#0C1322"/>
+  <rect x="84" y="84" width="856" height="856" rx="172" stroke="#EAF1FF" opacity="0.22" stroke-width="12"/>
+
+  <circle cx="300" cy="300" r="111" stroke="#FDBA4D" stroke-width="24"/>
+</svg>

@@ -16,7 +16,7 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/pwa-192x192.png',
+      icon: '/appicon.svg',
     })
   );
 });
@@ -27,7 +27,7 @@ self.addEventListener('message', (event) => {
     event.waitUntil(
       self.registration.showNotification(event.data.title || 'DressIndex', {
         body: event.data.body || '',
-        icon: '/pwa-192x192.png',
+        icon: '/appicon.svg',
         tag: 'daily-clothing',
       })
     );
@@ -120,7 +120,7 @@ async function checkAndFireNotification() {
 
     await self.registration.showNotification('DressIndex', {
       body,
-      icon: '/pwa-192x192.png',
+      icon: '/appicon.svg',
       tag: 'daily-clothing',
     });
 
