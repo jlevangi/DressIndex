@@ -19,6 +19,58 @@ import TierMapPanel from "./components/TierMap.jsx";
 import LoadingSpinner from "./components/LoadingSpinner.jsx";
 import WeatherSkeleton from "./components/WeatherSkeleton.jsx";
 
+const brandHeaderStyles = {
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 32,
+  },
+  brand: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    minWidth: 0,
+    flex: "1 1 320px",
+  },
+  iconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  icon: {
+    width: 56,
+    height: 56,
+    display: "block",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: "#f0f0f0",
+    letterSpacing: -0.5,
+    lineHeight: 1.1,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: "#8a8a8a",
+    letterSpacing: 0.2,
+    lineHeight: 1.35,
+  },
+  accent: {
+    width: 40,
+    height: 2,
+    background: "#f97316",
+    marginTop: 8,
+  },
+};
+
 export default function ClothingAlgo() {
   const envKey = window.__CONFIG__?.PIRATE_WEATHER_API_KEY || import.meta.env.VITE_PIRATE_WEATHER_API_KEY || "";
   const [apiKey, setApiKey] = useState(envKey);
@@ -114,13 +166,20 @@ export default function ClothingAlgo() {
         <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet" />
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
           <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 4 }}>
-              Florida Comfort Index
+            <div style={brandHeaderStyles.brand}>
+              <div style={brandHeaderStyles.iconWrap}>
+                <img src="/appicon.svg" alt="" aria-hidden="true" style={brandHeaderStyles.icon} />
+              </div>
+              <div>
+                <div style={brandHeaderStyles.title}>
+                  DressIndex
+                </div>
+                <div style={brandHeaderStyles.subtitle}>
+                  Data Driven Clothing Decision Index
+                </div>
+                <div style={brandHeaderStyles.accent} />
+              </div>
             </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", letterSpacing: -0.5 }}>
-              Clothing Algorithm
-            </div>
-            <div style={{ width: 40, height: 2, background: "#f97316", marginTop: 8 }} />
           </div>
           <WeatherSkeleton message="Booting..." />
         </div>
@@ -142,37 +201,44 @@ export default function ClothingAlgo() {
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#0a0a0a",
-      color: "#e0e0e0",
-      fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-      padding: "32px 16px",
-    }}>
+      <div style={{
+        minHeight: "100vh",
+        background: "#0a0a0a",
+        color: "#e0e0e0",
+        fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+        padding: "32px 16px",
+      }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet" />
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
-          <div>
-            <div style={{ fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 4 }}>
-              Florida Comfort Index
+        <div style={brandHeaderStyles.row}>
+          <div style={brandHeaderStyles.brand}>
+            <div style={brandHeaderStyles.iconWrap}>
+              <img src="/appicon.svg" alt="" aria-hidden="true" style={brandHeaderStyles.icon} />
             </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", letterSpacing: -0.5 }}>
-              Clothing Algorithm
+            <div>
+              <div style={brandHeaderStyles.title}>
+                DressIndex
+              </div>
+              <div style={brandHeaderStyles.subtitle}>
+                Data Driven Clothing Decision Index
+              </div>
+              <div style={brandHeaderStyles.accent} />
             </div>
-            <div style={{ width: 40, height: 2, background: "#f97316", marginTop: 8 }} />
           </div>
-          <HeaderAction
-            installPrompt={installPrompt}
-            isInstalled={isInstalled}
-            notifPermission={notifPermission}
-            notifTime={notifTime}
-            showTimePicker={showTimePicker}
-            onInstall={handleInstall}
-            onRequestNotifications={handleRequestNotifications}
-            onSaveNotifTime={handleSaveNotifTime}
-            onEditTime={() => setShowTimePicker(true)}
-            onCancelEdit={() => setShowTimePicker(false)}
-          />
+          <div style={{ marginLeft: "auto" }}>
+            <HeaderAction
+              installPrompt={installPrompt}
+              isInstalled={isInstalled}
+              notifPermission={notifPermission}
+              notifTime={notifTime}
+              showTimePicker={showTimePicker}
+              onInstall={handleInstall}
+              onRequestNotifications={handleRequestNotifications}
+              onSaveNotifTime={handleSaveNotifTime}
+              onEditTime={() => setShowTimePicker(true)}
+              onCancelEdit={() => setShowTimePicker(false)}
+            />
+          </div>
         </div>
 
         {!apiKey ? (
