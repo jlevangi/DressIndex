@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { DEFAULT_HOME, PRESET_LOCATIONS } from "../constants.js";
 
-export default function useLocation() {
+export default function useLocation(defaultLocationPref) {
   const [homeLocation, setHomeLocation] = useState(() => {
     try {
       const saved = localStorage.getItem("dressindex_home");
@@ -18,8 +18,17 @@ export default function useLocation() {
     ...PRESET_LOCATIONS,
   ], [homeLocation]);
 
-  // Auto-geolocate on mount
+  // Initialize location once startup preference is known.
   useEffect(() => {
+    if (defaultLocationPref == null) return;
+
+    if (defaultLocationPref === "home") {
+      setLat(homeLocation.lat);
+      setLng(homeLocation.lng);
+      setLocationName(homeLocation.name);
+      return;
+    }
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -38,7 +47,7 @@ export default function useLocation() {
       setLng(homeLocation.lng);
       setLocationName(homeLocation.name);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [defaultLocationPref]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleGeolocate = (setError) => {
     if (navigator.geolocation) {

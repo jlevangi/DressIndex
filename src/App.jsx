@@ -16,6 +16,8 @@ import LocationBar from "./components/LocationBar.jsx";
 import PersonalAdjSlider from "./components/PersonalAdjSlider.jsx";
 import ViewSwitcher from "./components/ViewSwitcher.jsx";
 import TierMapPanel from "./components/TierMap.jsx";
+import LoadingSpinner from "./components/LoadingSpinner.jsx";
+import WeatherSkeleton from "./components/WeatherSkeleton.jsx";
 
 export default function ClothingAlgo() {
   const envKey = window.__CONFIG__?.PIRATE_WEATHER_API_KEY || import.meta.env.VITE_PIRATE_WEATHER_API_KEY || "";
@@ -23,6 +25,7 @@ export default function ClothingAlgo() {
   const [keyInput, setKeyInput] = useState("");
   const [personalAdj, setPersonalAdj] = useState(0);
   const [onboardingDone, setOnboardingDone] = useState(null); // null=loading, true/false
+  const [defaultLocPref, setDefaultLocPref] = useState(null);
   const [view, setView] = useState("today");
 
   const {
@@ -30,7 +33,7 @@ export default function ClothingAlgo() {
     showSettings, setShowSettings,
     locations,
     handleGeolocate, handleSaveHome, selectLocation,
-  } = useLocation();
+  } = useLocation(defaultLocPref);
 
   const {
     weatherData, setWeatherData,
@@ -53,6 +56,9 @@ export default function ClothingAlgo() {
   useEffect(() => {
     (async () => {
       try {
+        const pref = await getConfig("defaultLocationPref");
+        setDefaultLocPref(pref === "home" ? "home" : "gps");
+
         const done = await getConfig("onboardingComplete");
         if (done) {
           const savedAdj = await getConfig("personalAdj");
@@ -68,6 +74,7 @@ export default function ClothingAlgo() {
           }
         }
       } catch (_) {
+        setDefaultLocPref("gps");
         setOnboardingDone(true);
       }
     })();
@@ -88,16 +95,46 @@ export default function ClothingAlgo() {
     if (keyInput.trim()) setApiKey(keyInput.trim());
   };
 
+  const handleSaveDefaultLocPref = (pref) => {
+    const normalized = pref === "home" ? "home" : "gps";
+    setDefaultLocPref(normalized);
+    setConfig("defaultLocationPref", normalized).catch(() => {});
+  };
+
   // Onboarding render gating
   if (onboardingDone === null) {
-    return <div style={{ minHeight: "100vh", background: "#0a0a0a" }} />;
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "#0a0a0a",
+        color: "#e0e0e0",
+        fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+        padding: "32px 16px",
+      }}>
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet" />
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 4 }}>
+              Florida Comfort Index
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", letterSpacing: -0.5 }}>
+              Clothing Algorithm
+            </div>
+            <div style={{ width: 40, height: 2, background: "#f97316", marginTop: 8 }} />
+          </div>
+          <WeatherSkeleton message="Booting..." />
+        </div>
+      </div>
+    );
   }
 
   if (onboardingDone === false) {
     return (
       <OnboardingSurvey
-        onComplete={(adj) => {
+        onComplete={(adj, home, pref) => {
           setPersonalAdj(adj);
+          if (home) handleSaveHome(home);
+          handleSaveDefaultLocPref(pref || "gps");
           setOnboardingDone(true);
         }}
       />
@@ -165,6 +202,12 @@ export default function ClothingAlgo() {
 
             <PersonalAdjSlider value={personalAdj} onChange={setPersonalAdj} />
             <ViewSwitcher view={view} onViewChange={setView} />
+            {!currentData && !error && (
+              <>
+                <LoadingSpinner message={lat === null ? "Locating..." : "Fetching weather..."} />
+                <WeatherSkeleton message={lat === null ? "Locating..." : "Fetching weather..."} />
+              </>
+            )}
 
             {view === "today" ? (
               <>
@@ -235,7 +278,9 @@ export default function ClothingAlgo() {
       {showSettings && (
         <SettingsModal
           homeLocation={homeLocation}
+          defaultLocPref={defaultLocPref || "gps"}
           onSave={handleSaveHome}
+          onSaveDefaultLocPref={handleSaveDefaultLocPref}
           onCancel={() => setShowSettings(false)}
         />
       )}
