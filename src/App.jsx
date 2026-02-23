@@ -91,7 +91,7 @@ export default function ClothingAlgo() {
     nowHourTs,
   } = useWeather(apiKey, lat, lng);
 
-  const { installPrompt, isInstalled, handleInstall } = useInstall();
+  const { isInstalled, handleInstall, canInstall, showIOSGuide, setShowIOSGuide } = useInstall();
 
   const {
     notifPermission, notifTime, notifEnabled,
@@ -223,8 +223,10 @@ export default function ClothingAlgo() {
             </div>
           </div>
           <HeaderAction
-            installPrompt={installPrompt}
+            canInstall={canInstall}
             isInstalled={isInstalled}
+            showIOSGuide={showIOSGuide}
+            onDismissIOSGuide={() => setShowIOSGuide(false)}
             notifPermission={notifPermission}
             notifTime={notifTime}
             notifEnabled={notifEnabled}

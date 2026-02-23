@@ -78,6 +78,14 @@ export function getAccessoryTags(data, clothing, dayHourlyData, personalAdj) {
     tags.push({ label: "Rain Jacket", color: "#67e8f9" });
   }
 
+  // Umbrella: any hour in the day has precipProbability > 50%
+  const hasRainToday = dayHourlyData
+    ? dayHourlyData.some((h) => (h.precipProbability || 0) > 0.5)
+    : (data.precipProbability || 0) > 0.5;
+  if (hasRainToday) {
+    tags.push({ label: "Umbrella", color: "#60a5fa" });
+  }
+
   // Sunscreen: UV index >= 6
   if ((data.uvIndex || 0) >= 6) {
     tags.push({ label: "Sunscreen", color: "#facc15" });

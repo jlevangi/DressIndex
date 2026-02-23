@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
 
+function getIsIOSSafari() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
+  return isIOS && isSafari;
+}
+
 export default function useInstall() {
   const [installPrompt, setInstallPrompt] = useState(null);
-  const [isInstalled, setIsInstalled] = useState(
-    typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches
-  );
+  const [isInstalled, setIsInstalled] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(display-mode: standalone)").matches || !!navigator.standalone;
+  });
+  const [isIOSSafari] = useState(getIsIOSSafari);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
 
   // Detect standalone (installed PWA) mode
   useEffect(() => {
@@ -27,6 +38,10 @@ export default function useInstall() {
   }, []);
 
   const handleInstall = async () => {
+    if (isIOSSafari) {
+      setShowIOSGuide(true);
+      return;
+    }
     if (!installPrompt) return;
     installPrompt.prompt();
     const result = await installPrompt.userChoice;
@@ -34,5 +49,7 @@ export default function useInstall() {
     if (result.outcome === "accepted") setIsInstalled(true);
   };
 
-  return { installPrompt, isInstalled, handleInstall };
+  const canInstall = !isInstalled && (!!installPrompt || isIOSSafari);
+
+  return { installPrompt, isInstalled, handleInstall, canInstall, isIOSSafari, showIOSGuide, setShowIOSGuide };
 }

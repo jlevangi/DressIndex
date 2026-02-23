@@ -57,31 +57,29 @@ export default function CurrentPanel({ data, personalAdj }) {
         ))}
       </div>
 
-      <div style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 6, padding: 16 }}>
-        <div style={{ display: "flex", gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top</div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.top}</div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Bottom</div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.bottom}</div>
-          </div>
+      <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ flex: 1, background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 6, padding: 16 }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.top}</div>
         </div>
-        {tags.length > 0 && (
-          <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid #1a1a1a", display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {tags.map((tag) => (
-              <span key={tag.label} style={{
-                background: `${tag.color}15`, border: `1px solid ${tag.color}40`,
-                borderRadius: 4, padding: "3px 10px", fontSize: 11, fontWeight: 600,
-                color: tag.color,
-              }}>
-                {tag.label}
-              </span>
-            ))}
-          </div>
-        )}
+        <div style={{ flex: 1, background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 6, padding: 16 }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Bottom</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.bottom}</div>
+        </div>
       </div>
+      {tags.length > 0 && (
+        <div style={{ marginTop: 10, display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {tags.map((tag) => (
+            <span key={tag.label} style={{
+              background: `${tag.color}15`, border: `1px solid ${tag.color}40`,
+              borderRadius: 4, padding: "3px 10px", fontSize: 11, fontWeight: 600,
+              color: tag.color,
+            }}>
+              {tag.label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
