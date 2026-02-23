@@ -1,14 +1,15 @@
-import { computeEffective, getClothing } from "../weather-utils.js";
+import { computeEffective, getClothing, getAccessoryTags } from "../weather-utils.js";
 import { getSkyLabel, getPrecipLabel } from "../utils.js";
 
-export default function CurrentPanel({ data, personalAdj, sunsetTime }) {
-  const calc = computeEffective(data, personalAdj, sunsetTime);
+export default function CurrentPanel({ data, personalAdj }) {
+  const calc = computeEffective(data, personalAdj);
   const clothing = getClothing(calc.effective);
+  const tags = getAccessoryTags(data, clothing, null, personalAdj);
   const modEntries = [
     { label: "Wind", val: calc.mods.wind },
     { label: "Sky", val: calc.mods.sky },
     { label: "Precip", val: calc.mods.precip },
-    { label: "Time", val: calc.mods.time },
+    { label: "UV", val: calc.mods.uv },
     { label: "Dew Pt", val: calc.mods.dewPt },
     { label: "Personal", val: calc.mods.personal },
   ];
@@ -27,6 +28,7 @@ export default function CurrentPanel({ data, personalAdj, sunsetTime }) {
           <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
             {getSkyLabel(data.cloudCover)} &middot; Wind {Math.round(data.windSpeed)} mph &middot; DP {Math.round(data.dewPoint)}&deg; &middot; Humidity {Math.round((data.humidity || 0) * 100)}%
             {data.precipIntensity > 0.01 && ` \u00b7 ${getPrecipLabel(data.precipIntensity)}`}
+            {(data.uvIndex != null) && ` \u00b7 UV ${Math.round(data.uvIndex)}`}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
@@ -55,7 +57,7 @@ export default function CurrentPanel({ data, personalAdj, sunsetTime }) {
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 16 }}>
+      <div style={{ display: "flex", gap: 16, marginBottom: tags.length > 0 ? 16 : 0 }}>
         <div style={{ flex: 1, background: "#0a0a0a", borderRadius: 6, padding: 16, border: "1px solid #1a1a1a" }}>
           <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top</div>
           <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.top}</div>
@@ -65,6 +67,20 @@ export default function CurrentPanel({ data, personalAdj, sunsetTime }) {
           <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.bottom}</div>
         </div>
       </div>
+
+      {tags.length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {tags.map((tag) => (
+            <span key={tag.label} style={{
+              background: `${tag.color}15`, border: `1px solid ${tag.color}40`,
+              borderRadius: 4, padding: "3px 10px", fontSize: 11, fontWeight: 600,
+              color: tag.color,
+            }}>
+              {tag.label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

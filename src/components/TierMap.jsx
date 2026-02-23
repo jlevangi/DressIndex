@@ -1,8 +1,8 @@
 import { computeEffective } from "../weather-utils.js";
 import { TIER_MAP } from "../constants.js";
 
-export default function TierMapPanel({ currentData, personalAdj, sunsetTime }) {
-  const eff = computeEffective(currentData, personalAdj, sunsetTime).effective;
+export default function TierMapPanel({ currentData, personalAdj }) {
+  const eff = computeEffective(currentData, personalAdj).effective;
 
   return (
     <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 8, padding: "16px 24px" }}>

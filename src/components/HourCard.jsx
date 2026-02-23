@@ -1,8 +1,8 @@
 import { computeEffective, getClothing } from "../weather-utils.js";
 import { getSkyLabel, getPrecipLabel, formatHour } from "../utils.js";
 
-export default function HourCard({ data, personalAdj, sunsetTime, isNow }) {
-  const calc = computeEffective(data, personalAdj, sunsetTime);
+export default function HourCard({ data, personalAdj, isNow }) {
+  const calc = computeEffective(data, personalAdj);
   const clothing = getClothing(calc.effective);
   const isPast = data.time * 1000 < Date.now() && !isNow;
 

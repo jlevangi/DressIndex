@@ -26,11 +26,29 @@ export const ONBOARDING_QUESTIONS = [
     ],
   },
   {
-    question: "How used to warm weather are you?",
+    question: "What kind of climate do you live in?",
     answers: [
-      { label: "Visiting from cooler climate", points: -1 },
-      { label: "1–3 years in warm weather", points: 0 },
-      { label: "Florida local 3+ years", points: +1 },
+      { label: "Cold winters (Northeast, Midwest)", points: -1 },
+      { label: "Four seasons, mild winters (Mid-Atlantic, Pacific NW)", points: 0 },
+      { label: "Warm year-round (Florida, Gulf Coast, SoCal)", points: +1 },
+    ],
+  },
+  {
+    question: "It\u2019s 70\u00b0F and breezy with some clouds \u2014 what are you reaching for?",
+    answers: [
+      { label: "Definitely a jacket", points: -3 },
+      { label: "A long sleeve or light layer", points: 0 },
+      { label: "Still a t-shirt", points: +2 },
+    ],
+  },
+  {
+    question: "When the temperature drops to the 50s, what\u2019s your move?",
+    answers: [
+      { label: "I\u2019m freezing, bundle me up", points: -2 },
+      { label: "Chilly \u2014 I need real layers", points: -1 },
+      { label: "A bit cool, light layer works", points: 0 },
+      { label: "Barely notice it", points: +2 },
+      { label: "Still in shorts and loving it", points: +3 },
     ],
   },
 ];

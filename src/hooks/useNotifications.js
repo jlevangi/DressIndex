@@ -15,14 +15,16 @@ export default function useNotifications({ weatherData, personalAdj, apiKey, lat
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const fireClothingNotification = useCallback(() => {
-    const sunset = weatherData?.daily?.data?.[0]?.sunsetTime || null;
     const hourlyData = weatherData?.hourly?.data || [];
     const startHour = notifTime ? Number(notifTime.split(":")[0]) : 6;
 
     let body;
-    const rec = getDayRecommendation(hourlyData, personalAdj, sunset, startHour);
+    const rec = getDayRecommendation(hourlyData, personalAdj, startHour);
     if (rec) {
       body = `${Math.round(rec.coldestEffective)}\u00b0F coldest effective today \u2014 wear a ${rec.clothing.top} + ${rec.clothing.bottom}`;
+      if (rec.tags && rec.tags.length > 0) {
+        body += ` | ${rec.tags.map((t) => t.label).join(", ")}`;
+      }
     } else {
       body = "Open DressIndex to see today's recommendation";
     }

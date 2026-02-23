@@ -11,7 +11,7 @@ export default function PersonalAdjSlider({ value, onChange }) {
         </span>
       </div>
       <input
-        type="range" min={-5} max={5} step={1} value={value}
+        type="range" min={-10} max={10} step={1} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         style={{ width: "100%", accentColor: "#f97316" }}
       />

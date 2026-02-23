@@ -106,15 +106,17 @@ async function checkAndFireNotification() {
     if (!res.ok) return;
     const data = await res.json();
 
-    const sunsetTime = data?.daily?.data?.[0]?.sunsetTime || null;
     const hourlyData = data?.hourly?.data || [];
     const adj = personalAdj || 0;
 
-    const rec = getDayRecommendation(hourlyData, adj, sunsetTime, targetH);
+    const rec = getDayRecommendation(hourlyData, adj, targetH);
 
     let body;
     if (rec) {
       body = `${Math.round(rec.coldestEffective)}°F coldest effective today — wear a ${rec.clothing.top} + ${rec.clothing.bottom}`;
+      if (rec.tags && rec.tags.length > 0) {
+        body += ` | ${rec.tags.map((t) => t.label).join(', ')}`;
+      }
     } else {
       body = 'Open DressIndex to see today\'s recommendation';
     }

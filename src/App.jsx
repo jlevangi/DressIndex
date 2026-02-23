@@ -293,7 +293,7 @@ export default function ClothingAlgo() {
 
             {view === "today" ? (
               <>
-                {currentData && <CurrentPanel data={currentData} personalAdj={personalAdj} sunsetTime={sunsetTime} />}
+                {currentData && <CurrentPanel data={currentData} personalAdj={personalAdj} />}
                 {hourlySlice.length > 0 && currentData && (
                   <DayAheadPanel
                     hourlySlice={hourlySlice}
@@ -315,7 +315,6 @@ export default function ClothingAlgo() {
                           key={h.time}
                           data={h}
                           personalAdj={personalAdj}
-                          sunsetTime={sunsetTime}
                           isNow={h.time === nowHourTs}
                         />
                       ))}
@@ -343,7 +342,6 @@ export default function ClothingAlgo() {
                           key={h.time}
                           data={h}
                           personalAdj={personalAdj}
-                          sunsetTime={tomorrowSunsetTime}
                           isNow={false}
                         />
                       ))}
@@ -353,7 +351,7 @@ export default function ClothingAlgo() {
               </>
             )}
 
-            {currentData && <TierMapPanel currentData={currentData} personalAdj={personalAdj} sunsetTime={sunsetTime} />}
+            {currentData && <TierMapPanel currentData={currentData} personalAdj={personalAdj} />}
           </>
         )}
       </div>
@@ -420,6 +418,7 @@ export default function ClothingAlgo() {
           onRequestNotifications={handleRequestNotifications}
           onSaveNotifTime={handleSaveNotifTime}
           onSetNotifEnabled={handleSetNotifEnabled}
+          onRedoOnboarding={() => { setShowSettings(false); setOnboardingDone(false); }}
         />
       )}
     </div>

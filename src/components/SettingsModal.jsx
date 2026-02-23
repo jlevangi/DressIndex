@@ -7,6 +7,7 @@ export default function SettingsModal({
   homeLocation, defaultLocPref, onSave, onSaveDefaultLocPref, onCancel,
   personalAdj, onPersonalAdjChange,
   notifPermission, notifTime, notifEnabled, onRequestNotifications, onSaveNotifTime, onSetNotifEnabled,
+  onRedoOnboarding,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
@@ -195,7 +196,7 @@ export default function SettingsModal({
               </span>
             </div>
             <input
-              type="range" min={-5} max={5} step={1} value={personalAdj}
+              type="range" min={-10} max={10} step={1} value={personalAdj}
               onChange={(e) => onPersonalAdjChange(Number(e.target.value))}
               style={{ width: "100%", accentColor: "#f97316", marginBottom: 4 }}
             />
@@ -300,6 +301,22 @@ export default function SettingsModal({
                 )}
               </>
             )}
+          </section>
+        )}
+
+        {/* ── Redo Onboarding ── */}
+        {onRedoOnboarding && (
+          <section>
+            <button
+              onClick={onRedoOnboarding}
+              style={{
+                background: "transparent", border: "1px solid #333", borderRadius: 6,
+                color: "#888", fontFamily: "inherit", fontSize: 11, padding: "8px 14px",
+                cursor: "pointer", width: "100%",
+              }}
+            >
+              Redo Onboarding Survey
+            </button>
           </section>
         )}
 
