@@ -3,9 +3,14 @@ import { setConfig } from "../idb-config.js";
 import { ONBOARDING_QUESTIONS } from "../constants.js";
 import { searchCity, reverseGeocode } from "../geocode.js";
 
+const QUESTION_COUNT = ONBOARDING_QUESTIONS.length;
+const HOME_STEP = QUESTION_COUNT;
+const RESULT_STEP = QUESTION_COUNT + 1;
+const TOTAL_DOTS = RESULT_STEP + 1;
+
 export default function OnboardingSurvey({ onComplete }) {
-  const [step, setStep] = useState(0); // 0-2 = questions, 3 = home location, 4 = result
-  const [answers, setAnswers] = useState([null, null, null]);
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState(Array(QUESTION_COUNT).fill(null));
   const [homeChoice, setHomeChoice] = useState(null);
   const [homeSet, setHomeSet] = useState(false);
   const [defaultPref, setDefaultPref] = useState("gps");
@@ -69,26 +74,26 @@ export default function OnboardingSurvey({ onComplete }) {
       setHomeSet(false);
       setDefaultPref("gps");
     }
-    setStep(4);
+    setStep(RESULT_STEP);
   };
 
   const handleSkipHome = () => {
     setHomeChoice(null);
     setHomeSet(false);
     setDefaultPref("gps");
-    setStep(4);
+    setStep(RESULT_STEP);
   };
 
   const handleComplete = async () => {
     const resolvedDefaultPref = homeSet ? defaultPref : "gps";
+    const answersObj = {};
+    for (let i = 0; i < QUESTION_COUNT; i++) {
+      answersObj[`q${i + 1}`] = answers[i];
+    }
     try {
       await setConfig("onboardingComplete", true);
       await setConfig("personalAdj", totalAdj);
-      await setConfig("onboardingAnswers", {
-        q1: answers[0],
-        q2: answers[1],
-        q3: answers[2],
-      });
+      await setConfig("onboardingAnswers", answersObj);
       await setConfig("defaultLocationPref", resolvedDefaultPref);
     } catch (_) {
       // IndexedDB failed — proceed anyway
@@ -113,7 +118,7 @@ export default function OnboardingSurvey({ onComplete }) {
       <div style={{ width: "100%", maxWidth: 400 }}>
         {/* Step indicator */}
         <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 32 }}>
-          {[0, 1, 2, 3, 4].map((i) => (
+          {Array.from({ length: TOTAL_DOTS }, (_, i) => (
             <div key={i} style={{
               width: i <= step ? 24 : 8, height: 4, borderRadius: 2,
               background: i <= step ? "#f97316" : "#333",
@@ -122,13 +127,13 @@ export default function OnboardingSurvey({ onComplete }) {
           ))}
         </div>
 
-        {step < 3 ? (
+        {step < QUESTION_COUNT ? (
           <>
             <div style={{
               fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase",
               marginBottom: 8, textAlign: "center",
             }}>
-              Question {step + 1} of 3
+              Question {step + 1} of {QUESTION_COUNT}
             </div>
             <div style={{
               fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
@@ -170,7 +175,7 @@ export default function OnboardingSurvey({ onComplete }) {
               </button>
             )}
           </>
-        ) : step === 3 ? (
+        ) : step === HOME_STEP ? (
           <>
             <div style={{
               fontSize: 11, color: "#f97316", letterSpacing: 3, textTransform: "uppercase",
@@ -265,7 +270,7 @@ export default function OnboardingSurvey({ onComplete }) {
                 padding: 12, marginBottom: 12,
               }}>
                 <div style={{ fontSize: 11, color: "#22c55e", marginBottom: 4 }}>
-                  \u2713 Selected
+                  {"\u2713"} Selected
                 </div>
                 <div style={{ fontSize: 13, color: "#f0f0f0", fontWeight: 600 }}>
                   {homeChoice.name}

@@ -1,8 +1,12 @@
-export function getWindMod(speed) {
+export function getWindMod(speed, baseTemp) {
   if (speed <= 10) return 0;
-  if (speed <= 15) return -2;
-  if (speed <= 20) return -4;
-  return -6;
+  let raw;
+  if (speed <= 15) raw = -2;
+  else if (speed <= 20) raw = -4;
+  else raw = -6;
+  // Scale wind chill by how far below 75°F the base temp is
+  const tempFactor = Math.max(0, Math.min(1, (75 - baseTemp) / 25));
+  return +(raw * tempFactor).toFixed(1);
 }
 
 export function getSkyMod(cloudCover) {
@@ -17,17 +21,11 @@ export function getPrecipMod(intensity) {
   return -4;
 }
 
-export function getTimeMod(timestamp, sunsetTime) {
-  if (!sunsetTime) return 0;
-  const diff = (sunsetTime - timestamp) / 60;
-  if (diff <= 0) return -3;
-  if (diff <= 30) return -3;
-  if (diff <= 60) return -2;
-  const hour = new Date(timestamp * 1000).getHours();
-  if (hour >= 15 && hour < 16) return -1;
-  if (hour >= 10 && hour < 15) return 0;
-  if (hour < 10) return -1;
-  return -2;
+export function getUvMod(uvIndex) {
+  if (!uvIndex || uvIndex < 3) return 0;
+  if (uvIndex < 6) return 1.5;
+  if (uvIndex < 9) return 3;
+  return 4;
 }
 
 export function dewPointMod(dp) {
@@ -37,17 +35,18 @@ export function dewPointMod(dp) {
   return 0;
 }
 
-export function computeEffective(data, personalAdj, sunsetTime) {
-  const wMod = getWindMod(data.windSpeed || 0);
+export function computeEffective(data, personalAdj) {
+  const baseTemp = data.temperature || 0;
+  const wMod = getWindMod(data.windSpeed || 0, baseTemp);
   const sMod = getSkyMod(data.cloudCover || 0);
   const pMod = getPrecipMod(data.precipIntensity);
-  const tMod = getTimeMod(data.time, sunsetTime);
+  const uMod = getUvMod(data.uvIndex);
   const dMod = dewPointMod(data.dewPoint || 50);
-  const total = wMod + sMod + pMod + tMod + dMod + personalAdj;
+  const total = wMod + sMod + pMod + uMod + dMod + personalAdj;
   return {
-    base: data.temperature,
-    effective: data.temperature + total,
-    mods: { wind: wMod, sky: sMod, precip: pMod, time: tMod, dewPt: dMod, personal: personalAdj },
+    base: baseTemp,
+    effective: baseTemp + total,
+    mods: { wind: wMod, sky: sMod, precip: pMod, uv: uMod, dewPt: dMod, personal: personalAdj },
     total,
   };
 }
@@ -65,11 +64,47 @@ export function getClothing(eff) {
   return { top, bottom, color };
 }
 
+export function getAccessoryTags(data, clothing, dayHourlyData, personalAdj) {
+  const tags = [];
+
+  // Windbreaker: wind > 15 mph and outfit isn't already jacket/coat/hoodie
+  const heavyTops = ["Light Jacket", "Hoodie", "Medium Coat", "Winter Coat"];
+  if ((data.windSpeed || 0) > 15 && !heavyTops.includes(clothing.top)) {
+    tags.push({ label: "Windbreaker", color: "#3b82f6" });
+  }
+
+  // Rain Jacket: precipProbability > 30%
+  if ((data.precipProbability || 0) > 0.3) {
+    tags.push({ label: "Rain Jacket", color: "#67e8f9" });
+  }
+
+  // Sunscreen: UV index >= 6
+  if ((data.uvIndex || 0) >= 6) {
+    tags.push({ label: "Sunscreen", color: "#facc15" });
+  }
+
+  // Bring a Layer: day's max-min effective spread > 10°F (only if dayHourlyData provided)
+  if (dayHourlyData && dayHourlyData.length > 1) {
+    let minEff = Infinity;
+    let maxEff = -Infinity;
+    for (const h of dayHourlyData) {
+      const calc = computeEffective(h, personalAdj);
+      if (calc.effective < minEff) minEff = calc.effective;
+      if (calc.effective > maxEff) maxEff = calc.effective;
+    }
+    if (maxEff - minEff > 10) {
+      tags.push({ label: "Bring a Layer", color: "#a78bfa" });
+    }
+  }
+
+  return tags;
+}
+
 /**
  * Scan hourly data from startHour through 11 PM, find the coldest effective
  * temperature, and return the clothing recommendation that covers the whole day.
  */
-export function getDayRecommendation(hourlyData, personalAdj, sunsetTime, startHour = 6) {
+export function getDayRecommendation(hourlyData, personalAdj, startHour = 6) {
   if (!hourlyData || !hourlyData.length) return null;
 
   const today = new Date();
@@ -93,7 +128,7 @@ export function getDayRecommendation(hourlyData, personalAdj, sunsetTime, startH
   let needsPants = false;
 
   for (const h of relevant) {
-    const calc = computeEffective(h, personalAdj, sunsetTime);
+    const calc = computeEffective(h, personalAdj);
     if (calc.effective < coldestEff) {
       coldestEff = calc.effective;
       coldestHour = h;
@@ -105,9 +140,14 @@ export function getDayRecommendation(hourlyData, personalAdj, sunsetTime, startH
 
   const clothing = getClothing(coldestEff);
   if (needsPants) clothing.bottom = "Pants";
+
+  // Compute accessory tags for the coldest hour using all relevant hours
+  const tags = getAccessoryTags(coldestHour, clothing, relevant, personalAdj);
+
   return {
     coldestEffective: coldestEff,
     coldestHour,
     clothing,
+    tags,
   };
 }

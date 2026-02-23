@@ -1,4 +1,4 @@
-import { computeEffective, getClothing } from "../weather-utils.js";
+import { computeEffective, getClothing, getAccessoryTags } from "../weather-utils.js";
 import { formatHour } from "../utils.js";
 
 export default function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetTime }) {
@@ -15,7 +15,7 @@ export default function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetT
 
   const calcs = hourlySlice.map((h) => ({
     data: h,
-    calc: computeEffective(h, personalAdj, sunsetTime),
+    calc: computeEffective(h, personalAdj),
   }));
 
   const coldest = calcs.reduce((min, cur) =>
@@ -30,6 +30,9 @@ export default function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetT
   ) : null;
 
   const coldestClothing = getClothing(coldest.calc.effective);
+
+  // Accessory tags for tomorrow (uses coldest hour data + all hours for "Bring a Layer")
+  const tags = getAccessoryTags(coldest.data, coldestClothing, hourlySlice, personalAdj);
 
   return (
     <div style={{
@@ -57,7 +60,7 @@ export default function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetT
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: tags.length > 0 ? 16 : 0 }}>
         {(() => {
           const slots = [
             { label: "Coldest", entry: coldest, clothing: coldestClothing },
@@ -85,6 +88,20 @@ export default function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetT
           ));
         })()}
       </div>
+
+      {tags.length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {tags.map((tag) => (
+            <span key={tag.label} style={{
+              background: `${tag.color}15`, border: `1px solid ${tag.color}40`,
+              borderRadius: 4, padding: "3px 10px", fontSize: 11, fontWeight: 600,
+              color: tag.color,
+            }}>
+              {tag.label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

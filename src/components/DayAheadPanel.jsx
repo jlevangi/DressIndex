@@ -1,4 +1,4 @@
-import { computeEffective, getClothing } from "../weather-utils.js";
+import { computeEffective, getClothing, getAccessoryTags } from "../weather-utils.js";
 import { formatHour } from "../utils.js";
 
 export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, currentData }) {
@@ -11,7 +11,7 @@ export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, cu
 
   const futureCalcs = futureHours.map((h) => ({
     data: h,
-    calc: computeEffective(h, personalAdj, sunsetTime),
+    calc: computeEffective(h, personalAdj),
   }));
 
   const coldest = futureCalcs.reduce((min, cur) =>
@@ -25,12 +25,15 @@ export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, cu
     Math.abs(cur.data.time - sunsetTime) < Math.abs(closest.data.time - sunsetTime) ? cur : closest
   ) : null;
 
-  const currentCalc = computeEffective(currentData, personalAdj, sunsetTime);
+  const currentCalc = computeEffective(currentData, personalAdj);
   const currentClothing = getClothing(currentCalc.effective);
   const coldestClothing = getClothing(coldest.calc.effective);
 
   const needsWarmer = coldest.calc.effective < currentCalc.effective &&
     (coldestClothing.top !== currentClothing.top || coldestClothing.bottom !== currentClothing.bottom);
+
+  // Accessory tags for rest of day (uses coldest hour data + all future hours for "Bring a Layer")
+  const tags = getAccessoryTags(coldest.data, coldestClothing, futureHours.map((h) => h), personalAdj);
 
   return (
     <div style={{
@@ -65,7 +68,7 @@ export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, cu
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: tags.length > 0 ? 16 : 0 }}>
         {(() => {
           const slots = [
             { label: "Coldest Point", entry: coldest, clothing: coldestClothing },
@@ -93,6 +96,20 @@ export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, cu
           ));
         })()}
       </div>
+
+      {tags.length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {tags.map((tag) => (
+            <span key={tag.label} style={{
+              background: `${tag.color}15`, border: `1px solid ${tag.color}40`,
+              borderRadius: 4, padding: "3px 10px", fontSize: 11, fontWeight: 600,
+              color: tag.color,
+            }}>
+              {tag.label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
