@@ -308,7 +308,7 @@ export default function ClothingAlgo() {
                       Today's Timeline
                     </div>
                     <div style={{
-                      display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
+                      display: "flex", flexDirection: "column", gap: 8, paddingTop: 10,
                     }}>
                       {todayTimelineSlice.map((h) => (
                         <HourCard
@@ -335,7 +335,7 @@ export default function ClothingAlgo() {
                       Tomorrow's Timeline
                     </div>
                     <div style={{
-                      display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, paddingTop: 10,
+                      display: "flex", flexDirection: "column", gap: 8, paddingTop: 10,
                     }}>
                       {tomorrowTimelineSlice.map((h) => (
                         <HourCard

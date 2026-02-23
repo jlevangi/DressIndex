@@ -71,7 +71,7 @@ export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, cu
       <div style={{ display: "flex", gap: 12, marginBottom: tags.length > 0 ? 16 : 0 }}>
         {(() => {
           const slots = [
-            { label: "Coldest Point", entry: coldest, clothing: coldestClothing },
+            { label: "Tonight", entry: coldest, clothing: coldestClothing },
             { label: "Warmest Point", entry: warmest, clothing: getClothing(warmest.calc.effective) },
           ];
           if (sunsetEntry) {
