@@ -40,7 +40,8 @@ export default function useLocation(defaultLocationPref) {
           setLat(homeLocation.lat);
           setLng(homeLocation.lng);
           setLocationName(homeLocation.name);
-        }
+        },
+        { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 }
       );
     } else {
       setLat(homeLocation.lat);
@@ -57,7 +58,8 @@ export default function useLocation(defaultLocationPref) {
           setLng(pos.coords.longitude);
           setLocationName("Current Location");
         },
-        () => setError("Geolocation denied.")
+        () => setError("Geolocation denied."),
+        { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 }
       );
     }
   };
