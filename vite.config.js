@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
         manifest: {
           name: 'DressIndex',
           short_name: 'DressIndex',
-          description: 'Weather-based clothing recommendations for Florida',
+          description: 'Weather-based clothing recommendations',
           theme_color: '#0a0a0a',
           background_color: '#0a0a0a',
           display: 'standalone',
