@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getConfig, setConfig } from "./idb-config.js";
+import { logEvent, logTopLevel } from "./firebase.js";
 import useWeather from "./hooks/useWeather.js";
 import useLocation from "./hooks/useLocation.js";
 import useInstall from "./hooks/useInstall.js";
 import useNotifications from "./hooks/useNotifications.js";
+import useSurvey from "./hooks/useSurvey.js";
 import HourCard from "./components/HourCard.jsx";
 import CurrentPanel from "./components/CurrentPanel.jsx";
 import DayAheadPanel from "./components/DayAheadPanel.jsx";
@@ -18,6 +20,7 @@ import ViewSwitcher from "./components/ViewSwitcher.jsx";
 import TierMapPanel from "./components/TierMap.jsx";
 import LoadingSpinner from "./components/LoadingSpinner.jsx";
 import WeatherSkeleton from "./components/WeatherSkeleton.jsx";
+import SurveyCard from "./components/SurveyCard.jsx";
 
 const brandHeaderStyles = {
   row: {
@@ -99,6 +102,17 @@ export default function ClothingAlgo() {
     handleRequestNotifications, handleSaveNotifTime, handleSetNotifEnabled,
   } = useNotifications({ weatherData, personalAdj, apiKey, lat, lng });
 
+  const {
+    showSurvey, surveyState, onRespond, onAcceptAdjust, onDismiss, adjustDirection,
+  } = useSurvey({ weatherLoaded: !!currentData, currentData, personalAdj });
+
+  const handleAcceptSurveyAdjust = useCallback(() => {
+    const newValue = Math.max(-10, Math.min(10, personalAdj + adjustDirection));
+    setPersonalAdj(newValue);
+    logTopLevel({ personalAdj: newValue });
+    onAcceptAdjust();
+  }, [personalAdj, adjustDirection, onAcceptAdjust]);
+
   // When notifications are just granted (showTimePicker), open settings to set time
   useEffect(() => {
     if (showTimePicker) {
@@ -134,13 +148,24 @@ export default function ClothingAlgo() {
     })();
   }, []);
 
-  // Debounced persist of personalAdj to IndexedDB
+  // Debounced persist of personalAdj to IndexedDB + adjHistory tracking
   const adjDebounceRef = useRef(null);
+  const prevAdjRef = useRef(personalAdj);
   useEffect(() => {
     if (onboardingDone !== true) return;
+    const changed = prevAdjRef.current !== personalAdj;
+    prevAdjRef.current = personalAdj;
     clearTimeout(adjDebounceRef.current);
-    adjDebounceRef.current = setTimeout(() => {
-      setConfig("personalAdj", personalAdj).catch(() => {});
+    adjDebounceRef.current = setTimeout(async () => {
+      try {
+        await setConfig("personalAdj", personalAdj);
+        if (changed) {
+          const hist = (await getConfig("adjHistory")) || [];
+          hist.push({ value: personalAdj, ts: Date.now() });
+          await setConfig("adjHistory", hist.slice(-30));
+          logEvent("adjustments", { value: personalAdj });
+        }
+      } catch (_) { /* IDB failed — proceed */ }
     }, 500);
     return () => clearTimeout(adjDebounceRef.current);
   }, [personalAdj, onboardingDone]);
@@ -296,6 +321,15 @@ export default function ClothingAlgo() {
             {view === "today" ? (
               <>
                 {currentData && <CurrentPanel data={currentData} personalAdj={personalAdj} />}
+                {showSurvey && (
+                  <SurveyCard
+                    surveyState={surveyState}
+                    onRespond={onRespond}
+                    onAcceptAdjust={handleAcceptSurveyAdjust}
+                    onDismiss={onDismiss}
+                    adjustDirection={adjustDirection}
+                  />
+                )}
                 {hourlySlice.length > 0 && currentData && (
                   <DayAheadPanel
                     hourlySlice={hourlySlice}
@@ -358,7 +392,7 @@ export default function ClothingAlgo() {
         )}
       </div>
 
-      {/* ── Personal Adjustment Popup ── */}
+      {/* ── Comfort Calibration Popup ── */}
       {showAdjPopup && (
         <div
           style={{
@@ -375,7 +409,7 @@ export default function ClothingAlgo() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#f0f0f0" }}>Personal Adjustment</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#f0f0f0" }}>Comfort Calibration</div>
               <div style={{
                 fontSize: 20, fontWeight: 700,
                 color: adjIsNonZero ? "#f97316" : "#888",

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { setConfig } from "../idb-config.js";
 import { ONBOARDING_QUESTIONS } from "../constants.js";
 import { searchCity, reverseGeocode } from "../geocode.js";
+import { logTopLevel } from "../firebase.js";
 
 const QUESTION_COUNT = ONBOARDING_QUESTIONS.length;
 const HOME_STEP = QUESTION_COUNT;
@@ -95,9 +96,11 @@ export default function OnboardingSurvey({ onComplete }) {
       await setConfig("personalAdj", totalAdj);
       await setConfig("onboardingAnswers", answersObj);
       await setConfig("defaultLocationPref", resolvedDefaultPref);
+      await setConfig("onboardingTs", Date.now());
     } catch (_) {
       // IndexedDB failed — proceed anyway
     }
+    logTopLevel({ onboardingAnswers: answersObj, personalAdj: totalAdj, defaultLocationPref: resolvedDefaultPref, onboardingTs: Date.now() });
     onComplete(totalAdj, homeSet ? homeChoice : null, resolvedDefaultPref);
   };
 
@@ -332,7 +335,7 @@ export default function OnboardingSurvey({ onComplete }) {
               fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
               marginBottom: 12,
             }}>
-              Personal Adjustment
+              Comfort Calibration
             </div>
             <div style={{
               fontSize: 48, fontWeight: 700, color: "#f97316", textAlign: "center",

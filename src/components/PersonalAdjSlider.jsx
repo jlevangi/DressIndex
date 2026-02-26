@@ -5,7 +5,7 @@ export default function PersonalAdjSlider({ value, onChange }) {
       padding: "16px 24px", marginBottom: 20,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 13, color: "#a0a0a0" }}>Personal Adjustment</span>
+        <span style={{ fontSize: 13, color: "#a0a0a0" }}>Comfort Calibration</span>
         <span style={{ fontSize: 13, color: "#e0e0e0", fontWeight: 600 }}>
           {value > 0 ? `+${value}` : value}&deg;F
         </span>
