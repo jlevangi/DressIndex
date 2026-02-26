@@ -111,6 +111,7 @@
     	C503.308990,228.256958 506.536987,232.290787 512.406372,232.686020 
     	C517.972046,233.060822 521.585510,229.677597 522.733154,222.093491 
     z"/>
+    <g transform="translate(0 40)">
     <path fill="#FAC65A" opacity="1.000000" stroke="none" 
     	d="
     M614.524658,310.442444 
@@ -232,11 +233,12 @@
     	C518.190857,176.061142 522.456970,180.252686 522.552002,186.728577 
     	C522.725037,198.515228 522.684570,210.305008 522.750732,222.538910 
     z"/>
+    </g>
   </g>
 
   <g transform="translate(430 95)">
-    <text x="0" y="126" fill="#EAF4FF" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="104" font-weight="700" letter-spacing="-2">DressIndex</text>
+    <text x="0" y="126" fill="#EAF4FF" font-family="JetBrains Mono, Fira Code, monospace" font-size="104" font-weight="700" letter-spacing="-2">DressIndex</text>
     <rect x="4" y="158" width="312" height="12" rx="6" fill="#F97316"/>
-    <text x="4" y="214" fill="#A3B7D4" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="32" font-weight="500" letter-spacing="2">WEATHER-DRIVEN STYLE</text>
+    <text x="4" y="214" fill="#A3B7D4" font-family="JetBrains Mono, Fira Code, monospace" font-size="32" font-weight="500" letter-spacing="2">WEATHER-DRIVEN STYLE</text>
   </g>
 </svg>
