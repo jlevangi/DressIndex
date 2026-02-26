@@ -183,11 +183,11 @@ export default function SettingsModal({
           </div>
         </section>
 
-        {/* ── Personal Adjustment ── */}
+        {/* ── Comfort Calibration ── */}
         {onPersonalAdjChange && (
           <section>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#f0f0f0", marginBottom: 14, letterSpacing: 0.2 }}>
-              Personal Adjustment
+              Comfort Calibration
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
               <span style={{ fontSize: 11, color: "#888" }}>How you feel temperatures</span>
