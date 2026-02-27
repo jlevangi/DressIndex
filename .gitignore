@@ -8,3 +8,7 @@ dist
 
 deploy.sh
 /.claude-octopus
+
+# Capacitor native projects
+/ios
+/android
