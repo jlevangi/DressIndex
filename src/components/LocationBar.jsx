@@ -18,8 +18,8 @@ export default function LocationBar({ locationName, lastFetch, loading, location
   return (
     <div style={{
       display: "flex", justifyContent: "space-between", alignItems: "center",
-      marginBottom: 16, padding: "8px 12px", background: "#111", borderRadius: 6,
-      border: "1px solid #1a1a1a",
+      marginBottom: 16, padding: "8px 12px", background: "var(--bg-card)", borderRadius: 6,
+      border: "1px solid var(--border)",
     }}>
       {/* Clickable location name with dropdown */}
       <div style={{ position: "relative" }} ref={dropdownRef}>
@@ -30,14 +30,14 @@ export default function LocationBar({ locationName, lastFetch, loading, location
             display: "flex", alignItems: "center", gap: 5, fontFamily: "inherit",
           }}
         >
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
             <circle cx="12" cy="9" r="2.5" />
           </svg>
-          <span style={{ fontSize: 12, color: "#ccc", fontWeight: 600 }}>
-            {locationName || "—"}
+          <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
+            {locationName || "\u2014"}
           </span>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points={dropdownOpen ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} />
           </svg>
         </button>
@@ -45,7 +45,7 @@ export default function LocationBar({ locationName, lastFetch, loading, location
         {dropdownOpen && (
           <div style={{
             position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200,
-            background: "#111", border: "1px solid #2a2a2a", borderRadius: 8,
+            background: "var(--bg-card)", border: "1px solid var(--bg-hover)", borderRadius: 8,
             minWidth: 210, boxShadow: "0 8px 32px rgba(0,0,0,0.8)", overflow: "hidden",
           }}>
             <button
@@ -54,8 +54,8 @@ export default function LocationBar({ locationName, lastFetch, loading, location
                 display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left",
                 padding: "9px 14px", fontSize: 11, fontFamily: "inherit",
                 background: locationName === "Current Location" ? "rgba(249,115,22,0.12)" : "transparent",
-                color: locationName === "Current Location" ? "#f97316" : "#aaa",
-                border: "none", borderBottom: "1px solid #1e1e1e", cursor: "pointer",
+                color: locationName === "Current Location" ? "#f97316" : "var(--text-muted)",
+                border: "none", borderBottom: "1px solid var(--border)", cursor: "pointer",
               }}
             >
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -76,13 +76,13 @@ export default function LocationBar({ locationName, lastFetch, loading, location
                     width: "100%", textAlign: "left",
                     padding: "9px 14px", fontSize: 11, fontFamily: "inherit",
                     background: isActive ? "rgba(249,115,22,0.12)" : "transparent",
-                    color: isActive ? "#f97316" : "#aaa",
-                    border: "none", borderBottom: isLast ? "none" : "1px solid #1e1e1e",
+                    color: isActive ? "#f97316" : "var(--text-muted)",
+                    border: "none", borderBottom: isLast ? "none" : "1px solid var(--border)",
                     cursor: "pointer",
                   }}
                 >
                   <span style={{ fontWeight: isActive ? 700 : 400 }}>{loc.label}</span>
-                  <span style={{ color: "#444", fontSize: 10 }}>{loc.name}</span>
+                  <span style={{ color: "var(--text-disabled)", fontSize: 10 }}>{loc.name}</span>
                 </button>
               );
             })}
@@ -93,7 +93,7 @@ export default function LocationBar({ locationName, lastFetch, loading, location
       {/* Right side controls */}
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {lastFetch && (
-          <span style={{ fontSize: 10, color: "#444" }}>
+          <span style={{ fontSize: 10, color: "var(--text-disabled)" }}>
             {lastFetch.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
           </span>
         )}
@@ -101,8 +101,8 @@ export default function LocationBar({ locationName, lastFetch, loading, location
           onClick={onRefresh}
           disabled={loading}
           style={{
-            background: "transparent", border: "1px solid #333", borderRadius: 3,
-            color: loading ? "#333" : "#888", fontSize: 10, padding: "2px 8px",
+            background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 3,
+            color: loading ? "var(--text-disabled)" : "var(--text-dim)", fontSize: 10, padding: "2px 8px",
             cursor: loading ? "default" : "pointer", fontFamily: "inherit",
           }}
         >
@@ -111,8 +111,8 @@ export default function LocationBar({ locationName, lastFetch, loading, location
         <button
           onClick={onSettings}
           style={{
-            background: "transparent", border: "1px solid #333", borderRadius: 3,
-            color: "#666", fontSize: 10, padding: "3px 5px", cursor: "pointer", fontFamily: "inherit",
+            background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 3,
+            color: "var(--text-label)", fontSize: 10, padding: "3px 5px", cursor: "pointer", fontFamily: "inherit",
             display: "flex", alignItems: "center",
           }}
           title="Settings"

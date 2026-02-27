@@ -2,8 +2,8 @@ export default function WeatherSkeleton({ message = "Loading..." }) {
   const shimmer = {
     position: "relative",
     overflow: "hidden",
-    background: "#111",
-    border: "1px solid #1a1a1a",
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
     borderRadius: 8,
   };
 
@@ -11,7 +11,7 @@ export default function WeatherSkeleton({ message = "Loading..." }) {
     position: "absolute",
     inset: 0,
     transform: "translateX(-100%)",
-    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)",
+    background: "linear-gradient(90deg, transparent, var(--shimmer), transparent)",
     animation: "skeletonShimmer 1.5s infinite",
   };
 
@@ -53,7 +53,7 @@ export default function WeatherSkeleton({ message = "Loading..." }) {
 
       <div style={{
         fontSize: 11,
-        color: "#666",
+        color: "var(--text-label)",
         letterSpacing: 1.4,
         textTransform: "uppercase",
         textAlign: "center",

@@ -8,9 +8,19 @@
     <link rel="icon" href="/appicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
     <title>DressIndex</title>
+    <script>
+      (function(){
+        var t = localStorage.getItem('dressindex_theme') || 'auto';
+        document.documentElement.setAttribute('data-theme', t);
+        var light = t === 'light' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches);
+        var mc = document.querySelector('meta[name="theme-color"]');
+        if (mc) mc.setAttribute('content', light ? '#ededed' : '#0a0a0a');
+      })();
+    </script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       #root { padding-top: env(safe-area-inset-top); }
+      body { background: var(--bg-page, #0a0a0a); }
     </style>
   </head>
   <body>

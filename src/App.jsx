@@ -6,6 +6,7 @@ import useLocation from "./hooks/useLocation.js";
 import useInstall from "./hooks/useInstall.js";
 import useNotifications from "./hooks/useNotifications.js";
 import useSurvey from "./hooks/useSurvey.js";
+import useTheme from "./hooks/useTheme.js";
 import HourCard from "./components/HourCard.jsx";
 import CurrentPanel from "./components/CurrentPanel.jsx";
 import DayAheadPanel from "./components/DayAheadPanel.jsx";
@@ -55,13 +56,13 @@ const brandHeaderStyles = {
   title: {
     fontSize: 20,
     fontWeight: 700,
-    color: "#f0f0f0",
+    color: "var(--text-heading)",
     letterSpacing: -0.5,
     lineHeight: 1.1,
   },
   subtitle: {
     fontSize: 10,
-    color: "#555",
+    color: "var(--text-faint)",
     letterSpacing: 0.2,
     lineHeight: 1.3,
     marginTop: 2,
@@ -105,6 +106,8 @@ export default function ClothingAlgo() {
   const {
     showSurvey, surveyState, onRespond, onAcceptAdjust, onDismiss, adjustDirection,
   } = useSurvey({ weatherLoaded: !!currentData, currentData, personalAdj });
+
+  const { themePref, setTheme } = useTheme();
 
   const handleAcceptSurveyAdjust = useCallback(() => {
     const newValue = Math.max(-10, Math.min(10, personalAdj + adjustDirection));
@@ -185,8 +188,8 @@ export default function ClothingAlgo() {
     return (
       <div style={{
         minHeight: "100vh",
-        background: "#0a0a0a",
-        color: "#e0e0e0",
+        background: "var(--bg-page)",
+        color: "var(--text)",
         fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
         padding: "32px 16px",
       }}>
@@ -228,8 +231,8 @@ export default function ClothingAlgo() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#0a0a0a",
-      color: "#e0e0e0",
+      background: "var(--bg-page)",
+      color: "var(--text)",
       fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
       padding: "24px 16px",
     }}>
@@ -297,10 +300,10 @@ export default function ClothingAlgo() {
                 title="Personal temperature adjustment — click to edit"
                 style={{
                   display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
-                  background: adjIsNonZero ? "rgba(249,115,22,0.1)" : "#111",
-                  border: adjIsNonZero ? "1px solid rgba(249,115,22,0.5)" : "1px solid #1a1a1a",
+                  background: adjIsNonZero ? "rgba(249,115,22,0.1)" : "var(--bg-card)",
+                  border: adjIsNonZero ? "1px solid rgba(249,115,22,0.5)" : "1px solid var(--border)",
                   borderRadius: 6, padding: "8px 12px", cursor: "pointer", fontFamily: "inherit",
-                  color: adjIsNonZero ? "#f97316" : "#555", fontSize: 11, fontWeight: adjIsNonZero ? 700 : 400,
+                  color: adjIsNonZero ? "#f97316" : "var(--text-faint)", fontSize: 11, fontWeight: adjIsNonZero ? 700 : 400,
                   transition: "all 0.15s ease",
                 }}
               >
@@ -340,7 +343,7 @@ export default function ClothingAlgo() {
                 )}
                 {todayTimelineSlice.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
                       Today's Timeline
                     </div>
                     <div style={{
@@ -367,7 +370,7 @@ export default function ClothingAlgo() {
                 />
                 {tomorrowTimelineSlice.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, paddingLeft: 4 }}>
                       Tomorrow's Timeline
                     </div>
                     <div style={{
@@ -396,23 +399,23 @@ export default function ClothingAlgo() {
       {showAdjPopup && (
         <div
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex",
+            position: "fixed", inset: 0, background: "var(--overlay)", display: "flex",
             alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16,
           }}
           onClick={() => setShowAdjPopup(false)}
         >
           <div
             style={{
-              background: "#111", border: "1px solid #333", borderRadius: 10, padding: 24,
+              background: "var(--bg-card)", border: "1px solid var(--border-btn)", borderRadius: 10, padding: 24,
               width: "100%", maxWidth: 320,
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#f0f0f0" }}>Comfort Calibration</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-heading)" }}>Comfort Calibration</div>
               <div style={{
                 fontSize: 20, fontWeight: 700,
-                color: adjIsNonZero ? "#f97316" : "#888",
+                color: adjIsNonZero ? "#f97316" : "var(--text-dim)",
               }}>
                 {adjLabel}
               </div>
@@ -420,7 +423,7 @@ export default function ClothingAlgo() {
 
             <PersonalAdjSlider value={personalAdj} onChange={setPersonalAdj} />
 
-            <div style={{ fontSize: 11, color: "#555", marginTop: 12, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 12, lineHeight: 1.5 }}>
               Shifts the effective temperature up or down to match how <em>you</em> personally feel the weather.
             </div>
 
@@ -455,6 +458,8 @@ export default function ClothingAlgo() {
           onSaveNotifTime={handleSaveNotifTime}
           onSetNotifEnabled={handleSetNotifEnabled}
           onRedoOnboarding={() => { setShowSettings(false); setOnboardingDone(false); }}
+          themePref={themePref}
+          onThemeChange={setTheme}
         />
       )}
     </div>

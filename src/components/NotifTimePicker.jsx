@@ -9,8 +9,8 @@ export default function NotifTimePicker({ initialTime, onSave, onCancel }) {
         value={time}
         onChange={(e) => setTime(e.target.value)}
         style={{
-          background: "#0a0a0a", border: "1px solid #333", borderRadius: 4,
-          color: "#e0e0e0", fontFamily: "inherit", fontSize: 11, padding: "4px 6px",
+          background: "var(--bg-input)", border: "1px solid var(--border-btn)", borderRadius: 4,
+          color: "var(--text)", fontFamily: "inherit", fontSize: 11, padding: "4px 6px",
           outline: "none",
         }}
       />
@@ -28,7 +28,7 @@ export default function NotifTimePicker({ initialTime, onSave, onCancel }) {
         <button
           onClick={onCancel}
           style={{
-            background: "transparent", color: "#555", border: "1px solid #333",
+            background: "transparent", color: "var(--text-faint)", border: "1px solid var(--border-btn)",
             borderRadius: 4, fontFamily: "inherit", fontSize: 10, padding: "4px 8px",
             cursor: "pointer",
           }}

@@ -32,8 +32,8 @@ export default function HourCard({ data, personalAdj, isNow }) {
       flexDirection: isMobile ? "column" : "row",
       alignItems: isMobile ? "stretch" : "center",
       gap: isMobile ? 6 : 16,
-      background: isNow ? "#1a1a1a" : "#111",
-      border: isNow ? "1px solid #f97316" : "1px solid #1a1a1a",
+      background: isNow ? "var(--bg-secondary)" : "var(--bg-card)",
+      border: isNow ? "1px solid #f97316" : "1px solid var(--border)",
       borderRadius: 8,
       padding: "10px 14px",
       opacity: isPast ? 0.4 : 1,
@@ -57,21 +57,21 @@ export default function HourCard({ data, personalAdj, isNow }) {
       )}
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-        <div style={{ minWidth: 48, flexShrink: 0, fontSize: 12, fontWeight: 600, color: isNow ? "#f0f0f0" : "#888" }}>
+        <div style={{ minWidth: 48, flexShrink: 0, fontSize: 12, fontWeight: 600, color: isNow ? "var(--text-heading)" : "var(--text-dim)" }}>
           {formatHour(data.time)}
         </div>
 
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0 }}>
-          <div style={{ minWidth: 44, flexShrink: 0, fontSize: 20, fontWeight: 700, color: "#e0e0e0" }}>
+          <div style={{ minWidth: 44, flexShrink: 0, fontSize: 20, fontWeight: 700, color: "var(--text)" }}>
             {Math.round(data.temperature)}&deg;
           </div>
-          <div style={{ flexShrink: 0, fontSize: 12, color: "#555" }}>
+          <div style={{ flexShrink: 0, fontSize: 12, color: "var(--text-faint)" }}>
             {calc.effective.toFixed(0)}&deg; eff.
           </div>
         </div>
 
         {!isMobile && (
-          <div style={{ flex: 1, fontSize: 11, color: "#555", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ flex: 1, fontSize: 11, color: "var(--text-faint)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {conditions}
           </div>
         )}
@@ -83,7 +83,7 @@ export default function HourCard({ data, personalAdj, isNow }) {
       </div>
 
       {isMobile && (
-        <div style={{ fontSize: 11, color: "#555", lineHeight: 1.35 }}>
+        <div style={{ fontSize: 11, color: "var(--text-faint)", lineHeight: 1.35 }}>
           {conditions}
         </div>
       )}
