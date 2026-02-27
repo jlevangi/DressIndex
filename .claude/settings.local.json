@@ -24,7 +24,10 @@
       "Bash(git -C /mnt/c/Users/pierc/git/DressIndex diff --stat)",
       "Bash(git -C /mnt/c/Users/pierc/git/DressIndex log --oneline -3)",
       "WebSearch",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(npm run build:pwa:*)",
+      "Bash(git rm:*)",
+      "Bash(cmd.exe /c \"set ANDROID_HOME=C:\\\\Users\\\\pierc\\\\AppData\\\\Local\\\\Android\\\\Sdk&& set JAVA_HOME=C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr&& gradlew.bat assembleDebug\")"
     ]
   }
 }
