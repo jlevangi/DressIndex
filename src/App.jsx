@@ -302,7 +302,7 @@ export default function ClothingAlgo() {
                   display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
                   background: adjIsNonZero ? "rgba(249,115,22,0.1)" : "var(--bg-card)",
                   border: adjIsNonZero ? "1px solid rgba(249,115,22,0.5)" : "1px solid var(--border)",
-                  borderRadius: 6, padding: "8px 12px", cursor: "pointer", fontFamily: "inherit",
+                  borderRadius: 6, padding: "16px 12px", cursor: "pointer", fontFamily: "inherit",
                   color: adjIsNonZero ? "#f97316" : "var(--text-faint)", fontSize: 11, fontWeight: adjIsNonZero ? 700 : 400,
                   transition: "all 0.15s ease",
                 }}
