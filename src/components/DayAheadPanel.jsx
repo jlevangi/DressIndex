@@ -26,8 +26,8 @@ export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, cu
   ) : null;
 
   const currentCalc = computeEffective(currentData, personalAdj);
-  const currentClothing = getClothing(currentCalc.effective);
-  const coldestClothing = getClothing(coldest.calc.effective);
+  const currentClothing = getClothing(currentCalc.effective, currentData);
+  const coldestClothing = getClothing(coldest.calc.effective, coldest.data);
 
   const needsWarmer = coldest.calc.effective < currentCalc.effective &&
     (coldestClothing.top !== currentClothing.top || coldestClothing.bottom !== currentClothing.bottom);
@@ -72,10 +72,10 @@ export default function DayAheadPanel({ hourlySlice, personalAdj, sunsetTime, cu
         {(() => {
           const slots = [
             { label: "Tonight", entry: coldest, clothing: coldestClothing },
-            { label: "Warmest Point", entry: warmest, clothing: getClothing(warmest.calc.effective) },
+            { label: "Warmest Point", entry: warmest, clothing: getClothing(warmest.calc.effective, warmest.data) },
           ];
           if (sunsetEntry) {
-            slots.push({ label: "At Sunset", entry: sunsetEntry, clothing: getClothing(sunsetEntry.calc.effective) });
+            slots.push({ label: "At Sunset", entry: sunsetEntry, clothing: getClothing(sunsetEntry.calc.effective, sunsetEntry.data) });
           }
           slots.sort((a, b) => a.entry.data.time - b.entry.data.time);
           return slots.map((slot) => (

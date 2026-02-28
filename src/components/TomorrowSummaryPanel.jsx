@@ -29,7 +29,7 @@ export default function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetT
     Math.abs(cur.data.time - sunsetTime) < Math.abs(closest.data.time - sunsetTime) ? cur : closest
   ) : null;
 
-  const coldestClothing = getClothing(coldest.calc.effective);
+  const coldestClothing = getClothing(coldest.calc.effective, coldest.data);
 
   // Accessory tags for tomorrow (uses coldest hour data + all hours for "Bring a Layer")
   const tags = getAccessoryTags(coldest.data, coldestClothing, hourlySlice, personalAdj);
@@ -64,10 +64,10 @@ export default function TomorrowSummaryPanel({ hourlySlice, personalAdj, sunsetT
         {(() => {
           const slots = [
             { label: "Coldest", entry: coldest, clothing: coldestClothing },
-            { label: "Warmest", entry: warmest, clothing: getClothing(warmest.calc.effective) },
+            { label: "Warmest", entry: warmest, clothing: getClothing(warmest.calc.effective, warmest.data) },
           ];
           if (sunsetEntry) {
-            slots.push({ label: "At Sunset", entry: sunsetEntry, clothing: getClothing(sunsetEntry.calc.effective) });
+            slots.push({ label: "At Sunset", entry: sunsetEntry, clothing: getClothing(sunsetEntry.calc.effective, sunsetEntry.data) });
           }
           slots.sort((a, b) => a.entry.data.time - b.entry.data.time);
           return slots.map((slot) => (

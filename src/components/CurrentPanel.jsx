@@ -3,7 +3,7 @@ import { getSkyLabel, getPrecipLabel } from "../utils.js";
 
 export default function CurrentPanel({ data, personalAdj }) {
   const calc = computeEffective(data, personalAdj);
-  const clothing = getClothing(calc.effective);
+  const clothing = getClothing(calc.effective, data);
   const tags = getAccessoryTags(data, clothing, null, personalAdj);
   const modEntries = [
     { label: "Wind", val: calc.mods.wind },
@@ -14,27 +14,35 @@ export default function CurrentPanel({ data, personalAdj }) {
     { label: "Personal", val: calc.mods.personal },
   ];
 
+  const conditionItems = [
+    getSkyLabel(data.cloudCover),
+    `Wind ${Math.round(data.windSpeed)} mph`,
+    `DP ${Math.round(data.dewPoint)}\u00b0`,
+    `Humidity ${Math.round((data.humidity || 0) * 100)}%`,
+    data.precipIntensity > 0.01 ? getPrecipLabel(data.precipIntensity) : null,
+    data.uvIndex != null ? `UV ${Math.round(data.uvIndex)}` : null,
+  ].filter(Boolean);
+
   return (
     <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8, padding: 24, marginBottom: 20 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>
-            Right Now
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 36, fontWeight: 700, color: "var(--text-heading)" }}>{Math.round(data.temperature)}&deg;F</span>
-            <span style={{ fontSize: 14, color: "var(--text-faint)" }}>feels {Math.round(data.apparentTemperature || data.temperature)}&deg;</span>
-          </div>
-          <div style={{ fontSize: 12, color: "var(--text-label)", marginTop: 4 }}>
-            {getSkyLabel(data.cloudCover)} &middot; Wind {Math.round(data.windSpeed)} mph &middot; DP {Math.round(data.dewPoint)}&deg; &middot; Humidity {Math.round((data.humidity || 0) * 100)}%
-            {data.precipIntensity > 0.01 && ` \u00b7 ${getPrecipLabel(data.precipIntensity)}`}
-            {(data.uvIndex != null) && ` \u00b7 UV ${Math.round(data.uvIndex)}`}
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 4 }}>EFFECTIVE</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "#f97316" }}>{calc.effective.toFixed(1)}&deg;F</div>
-        </div>
+      <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+        Right Now
+      </div>
+
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 2 }}>
+        <span style={{ fontSize: 36, fontWeight: 700, color: "var(--text-heading)" }}>{Math.round(data.temperature)}&deg;F</span>
+        <span style={{ fontSize: 28, fontWeight: 700, color: "#f97316" }}>{calc.effective.toFixed(1)}&deg;F <span style={{ fontSize: 11, fontWeight: 400, color: "var(--text-faint)" }}>eff.</span></span>
+      </div>
+      <div style={{ fontSize: 14, color: "var(--text-faint)", marginBottom: 12 }}>
+        feels {Math.round(data.apparentTemperature || data.temperature)}&deg;
+      </div>
+
+      <div style={{ fontSize: 12, color: "var(--text-label)", marginBottom: 12, lineHeight: 1.8 }}>
+        {conditionItems.map((item, i) => (
+          <span key={i} style={{ display: "inline-block", whiteSpace: "nowrap" }}>
+            {i > 0 ? `\u00a0\u00b7 ${item}` : item}
+          </span>
+        ))}
       </div>
 
       <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 16 }}>
@@ -57,7 +65,7 @@ export default function CurrentPanel({ data, personalAdj }) {
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 10 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: tags.length > 0 ? 10 : 0 }}>
         <div style={{ flex: 1, background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: 6, padding: 16 }}>
           <div style={{ fontSize: 10, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top</div>
           <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.top}</div>
@@ -67,8 +75,9 @@ export default function CurrentPanel({ data, personalAdj }) {
           <div style={{ fontSize: 18, fontWeight: 600, color: clothing.color }}>{clothing.bottom}</div>
         </div>
       </div>
+
       {tags.length > 0 && (
-        <div style={{ marginTop: 10, display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {tags.map((tag) => (
             <span key={tag.label} style={{
               background: `${tag.color}15`, border: `1px solid ${tag.color}40`,

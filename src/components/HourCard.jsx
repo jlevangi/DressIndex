@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { computeEffective, getClothing } from "../weather-utils.js";
+import { computeEffective, getClothing, getAccessoryTags } from "../weather-utils.js";
 import { getSkyLabel, getPrecipLabel, formatHour } from "../utils.js";
 
 export default function HourCard({ data, personalAdj, isNow }) {
   const calc = computeEffective(data, personalAdj);
-  const clothing = getClothing(calc.effective);
+  const clothing = getClothing(calc.effective, data);
+  const tags = getAccessoryTags(data, clothing, null, personalAdj);
   const isPast = data.time * 1000 < Date.now() && !isNow;
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -83,8 +84,37 @@ export default function HourCard({ data, personalAdj, isNow }) {
       </div>
 
       {isMobile && (
-        <div style={{ fontSize: 11, color: "var(--text-faint)", lineHeight: 1.35 }}>
-          {conditions}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ flex: 1, fontSize: 11, color: "var(--text-faint)", lineHeight: 1.35 }}>
+            {conditions}
+          </div>
+          {tags.length > 0 && (
+            <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+              {tags.map((tag) => (
+                <span key={tag.label} style={{
+                  fontSize: 9, fontWeight: 600, color: tag.color,
+                  background: `${tag.color}15`, border: `1px solid ${tag.color}30`,
+                  borderRadius: 3, padding: "1px 5px", lineHeight: 1.3,
+                }}>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!isMobile && tags.length > 0 && (
+        <div style={{ display: "flex", gap: 3, marginTop: -8 }}>
+          {tags.map((tag) => (
+            <span key={tag.label} style={{
+              fontSize: 9, fontWeight: 600, color: tag.color,
+              background: `${tag.color}15`, border: `1px solid ${tag.color}30`,
+              borderRadius: 3, padding: "1px 5px", lineHeight: 1.3,
+            }}>
+              {tag.label}
+            </span>
+          ))}
         </div>
       )}
     </div>
