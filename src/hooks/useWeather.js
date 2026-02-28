@@ -50,11 +50,11 @@ export default function useWeather(apiKey, lat, lng) {
     return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
   }, [weatherData]);
 
-  // 9AM-11PM slice for timeline display
+  // 7AM-11PM slice for timeline display
   const todayTimelineSlice = useMemo(() => {
     if (!weatherData?.hourly?.data) return [];
     const startOfDay = new Date();
-    startOfDay.setHours(9, 0, 0, 0);
+    startOfDay.setHours(7, 0, 0, 0);
     const startTs = Math.floor(startOfDay.getTime() / 1000);
     const endOfDay = new Date();
     endOfDay.setHours(23, 0, 0, 0);
@@ -76,13 +76,13 @@ export default function useWeather(apiKey, lat, lng) {
     return weatherData.hourly.data.filter((h) => h.time >= startTs && h.time <= endTs);
   }, [weatherData]);
 
-  // 9AM-11PM slice for tomorrow timeline display
+  // 7AM-11PM slice for tomorrow timeline display
   const tomorrowTimelineSlice = useMemo(() => {
     if (!weatherData?.hourly?.data) return [];
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const startOfTomorrow = new Date(tomorrow);
-    startOfTomorrow.setHours(9, 0, 0, 0);
+    startOfTomorrow.setHours(7, 0, 0, 0);
     const endOfTomorrow = new Date(tomorrow);
     endOfTomorrow.setHours(23, 0, 0, 0);
     const startTs = Math.floor(startOfTomorrow.getTime() / 1000);
