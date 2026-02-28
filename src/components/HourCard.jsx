@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { computeEffective, getClothing } from "../weather-utils.js";
+import { computeEffective, getClothing, getAccessoryTags } from "../weather-utils.js";
 import { getSkyLabel, getPrecipLabel, formatHour } from "../utils.js";
 
 export default function HourCard({ data, personalAdj, isNow }) {
   const calc = computeEffective(data, personalAdj);
-  const clothing = getClothing(calc.effective);
+  const clothing = getClothing(calc.effective, data);
+  const tags = getAccessoryTags(data, clothing, null, personalAdj);
   const isPast = data.time * 1000 < Date.now() && !isNow;
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -32,8 +33,8 @@ export default function HourCard({ data, personalAdj, isNow }) {
       flexDirection: isMobile ? "column" : "row",
       alignItems: isMobile ? "stretch" : "center",
       gap: isMobile ? 6 : 16,
-      background: isNow ? "#1a1a1a" : "#111",
-      border: isNow ? "1px solid #f97316" : "1px solid #1a1a1a",
+      background: isNow ? "var(--bg-secondary)" : "var(--bg-card)",
+      border: isNow ? "1px solid #f97316" : "1px solid var(--border)",
       borderRadius: 8,
       padding: "10px 14px",
       opacity: isPast ? 0.4 : 1,
@@ -57,21 +58,21 @@ export default function HourCard({ data, personalAdj, isNow }) {
       )}
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-        <div style={{ minWidth: 48, flexShrink: 0, fontSize: 12, fontWeight: 600, color: isNow ? "#f0f0f0" : "#888" }}>
+        <div style={{ minWidth: 48, flexShrink: 0, fontSize: 12, fontWeight: 600, color: isNow ? "var(--text-heading)" : "var(--text-dim)" }}>
           {formatHour(data.time)}
         </div>
 
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0 }}>
-          <div style={{ minWidth: 44, flexShrink: 0, fontSize: 20, fontWeight: 700, color: "#e0e0e0" }}>
+          <div style={{ minWidth: 44, flexShrink: 0, fontSize: 20, fontWeight: 700, color: "var(--text)" }}>
             {Math.round(data.temperature)}&deg;
           </div>
-          <div style={{ flexShrink: 0, fontSize: 12, color: "#555" }}>
+          <div style={{ flexShrink: 0, fontSize: 12, color: "var(--text-faint)" }}>
             {calc.effective.toFixed(0)}&deg; eff.
           </div>
         </div>
 
         {!isMobile && (
-          <div style={{ flex: 1, fontSize: 11, color: "#555", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ flex: 1, fontSize: 11, color: "var(--text-faint)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {conditions}
           </div>
         )}
@@ -83,8 +84,37 @@ export default function HourCard({ data, personalAdj, isNow }) {
       </div>
 
       {isMobile && (
-        <div style={{ fontSize: 11, color: "#555", lineHeight: 1.35 }}>
-          {conditions}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ flex: 1, fontSize: 11, color: "var(--text-faint)", lineHeight: 1.35 }}>
+            {conditions}
+          </div>
+          {tags.length > 0 && (
+            <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+              {tags.map((tag) => (
+                <span key={tag.label} style={{
+                  fontSize: 9, fontWeight: 600, color: tag.color,
+                  background: `${tag.color}15`, border: `1px solid ${tag.color}30`,
+                  borderRadius: 3, padding: "1px 5px", lineHeight: 1.3,
+                }}>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!isMobile && tags.length > 0 && (
+        <div style={{ display: "flex", gap: 3, marginTop: -8 }}>
+          {tags.map((tag) => (
+            <span key={tag.label} style={{
+              fontSize: 9, fontWeight: 600, color: tag.color,
+              background: `${tag.color}15`, border: `1px solid ${tag.color}30`,
+              borderRadius: 3, padding: "1px 5px", lineHeight: 1.3,
+            }}>
+              {tag.label}
+            </span>
+          ))}
         </div>
       )}
     </div>

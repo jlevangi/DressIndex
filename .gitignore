@@ -8,3 +8,15 @@ dist
 
 deploy.sh
 /.claude-octopus
+
+# Capacitor native projects (iOS not added yet)
+/ios
+
+# Android build artifacts
+/android/app/build/
+/android/build/
+/android/capacitor-android/build/
+/android/capacitor-cordova-android-plugins/build/
+/android/.gradle/
+/android/.idea/
+/android/local.properties

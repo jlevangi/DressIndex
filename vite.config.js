@@ -56,6 +56,9 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       allowedHosts,
+      watch: {
+        usePolling: true,
+      },
     },
   }
 })

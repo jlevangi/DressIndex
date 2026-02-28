@@ -112,7 +112,7 @@ export default function OnboardingSurvey({ onComplete }) {
 
   return (
     <div style={{
-      minHeight: "100vh", background: "#0a0a0a", color: "#e0e0e0",
+      minHeight: "100vh", background: "var(--bg-page)", color: "var(--text)",
       fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", padding: 24,
@@ -124,7 +124,7 @@ export default function OnboardingSurvey({ onComplete }) {
           {Array.from({ length: TOTAL_DOTS }, (_, i) => (
             <div key={i} style={{
               width: i <= step ? 24 : 8, height: 4, borderRadius: 2,
-              background: i <= step ? "#f97316" : "#333",
+              background: i <= step ? "#f97316" : "var(--border-btn)",
               transition: "all 0.3s ease",
             }} />
           ))}
@@ -133,13 +133,13 @@ export default function OnboardingSurvey({ onComplete }) {
         {step < QUESTION_COUNT ? (
           <>
             <div style={{
-              fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase",
+              fontSize: 11, color: "var(--text-faint)", letterSpacing: 3, textTransform: "uppercase",
               marginBottom: 8, textAlign: "center",
             }}>
               Question {step + 1} of {QUESTION_COUNT}
             </div>
             <div style={{
-              fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
+              fontSize: 18, fontWeight: 600, color: "var(--text-heading)", textAlign: "center",
               marginBottom: 32, lineHeight: 1.4,
             }}>
               {ONBOARDING_QUESTIONS[step].question}
@@ -153,9 +153,9 @@ export default function OnboardingSurvey({ onComplete }) {
                     onClick={() => handleSelect(ans.points)}
                     style={{
                       padding: "14px 20px", fontSize: 14, fontFamily: "inherit", fontWeight: 500,
-                      background: isSelected ? "rgba(249,115,22,0.15)" : "#111",
-                      border: isSelected ? "1px solid #f97316" : "1px solid #1a1a1a",
-                      borderRadius: 8, color: isSelected ? "#f97316" : "#ccc",
+                      background: isSelected ? "rgba(249,115,22,0.15)" : "var(--bg-card)",
+                      border: isSelected ? "1px solid #f97316" : "1px solid var(--border)",
+                      borderRadius: 8, color: isSelected ? "#f97316" : "var(--text-secondary)",
                       cursor: "pointer", textAlign: "left",
                       transition: "all 0.15s ease",
                     }}
@@ -170,7 +170,7 @@ export default function OnboardingSurvey({ onComplete }) {
                 onClick={handleBack}
                 style={{
                   marginTop: 20, background: "transparent", border: "none",
-                  color: "#555", fontSize: 12, fontFamily: "inherit",
+                  color: "var(--text-faint)", fontSize: 12, fontFamily: "inherit",
                   cursor: "pointer", padding: "8px 0",
                 }}
               >
@@ -187,13 +187,13 @@ export default function OnboardingSurvey({ onComplete }) {
               Optional
             </div>
             <div style={{
-              fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
+              fontSize: 18, fontWeight: 600, color: "var(--text-heading)", textAlign: "center",
               marginBottom: 8,
             }}>
               Set Your Home Location
             </div>
             <div style={{
-              fontSize: 12, color: "#777", textAlign: "center",
+              fontSize: 12, color: "var(--text-dim)", textAlign: "center",
               marginBottom: 20, lineHeight: 1.5,
             }}>
               Used as your fallback when GPS is unavailable.
@@ -206,16 +206,16 @@ export default function OnboardingSurvey({ onComplete }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search city"
                 style={{
-                  flex: 1, padding: "10px 12px", background: "#111", border: "1px solid #1a1a1a",
-                  borderRadius: 8, color: "#e0e0e0", fontFamily: "inherit", fontSize: 13, outline: "none",
+                  flex: 1, padding: "10px 12px", background: "var(--bg-card)", border: "1px solid var(--border)",
+                  borderRadius: 8, color: "var(--text)", fontFamily: "inherit", fontSize: 13, outline: "none",
                 }}
               />
               <button
                 onClick={handleSearch}
                 disabled={searching}
                 style={{
-                  background: "transparent", border: "1px solid #333", borderRadius: 8,
-                  color: searching ? "#444" : "#ccc", fontFamily: "inherit", fontSize: 12, fontWeight: 600,
+                  background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 8,
+                  color: searching ? "var(--text-disabled)" : "var(--text-secondary)", fontFamily: "inherit", fontSize: 12, fontWeight: 600,
                   padding: "10px 12px", cursor: searching ? "default" : "pointer",
                 }}
               >
@@ -236,10 +236,10 @@ export default function OnboardingSurvey({ onComplete }) {
                         fontSize: 13,
                         fontFamily: "inherit",
                         fontWeight: 500,
-                        background: isSelected ? "rgba(249,115,22,0.15)" : "#111",
-                        border: isSelected ? "1px solid #f97316" : "1px solid #1a1a1a",
+                        background: isSelected ? "rgba(249,115,22,0.15)" : "var(--bg-card)",
+                        border: isSelected ? "1px solid #f97316" : "1px solid var(--border)",
                         borderRadius: 8,
-                        color: isSelected ? "#f97316" : "#ccc",
+                        color: isSelected ? "#f97316" : "var(--text-secondary)",
                         cursor: "pointer",
                         textAlign: "left",
                       }}
@@ -260,8 +260,8 @@ export default function OnboardingSurvey({ onComplete }) {
             <button
               onClick={handleUseCurrentLocation}
               style={{
-                marginBottom: 12, background: "transparent", border: "1px solid #333", borderRadius: 8,
-                color: "#888", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 10px",
+                marginBottom: 12, background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 8,
+                color: "var(--text-dim)", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 10px",
               }}
             >
               Use Current Location
@@ -269,13 +269,13 @@ export default function OnboardingSurvey({ onComplete }) {
 
             {homeChoice && (
               <div style={{
-                background: "#111", border: "1px solid #1a1a1a", borderRadius: 8,
+                background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8,
                 padding: 12, marginBottom: 12,
               }}>
                 <div style={{ fontSize: 11, color: "#22c55e", marginBottom: 4 }}>
                   {"\u2713"} Selected
                 </div>
-                <div style={{ fontSize: 13, color: "#f0f0f0", fontWeight: 600 }}>
+                <div style={{ fontSize: 13, color: "var(--text-heading)", fontWeight: 600 }}>
                   {homeChoice.name}
                 </div>
               </div>
@@ -283,7 +283,7 @@ export default function OnboardingSurvey({ onComplete }) {
 
             <label style={{
               display: "flex", alignItems: "center", gap: 8, marginBottom: 20,
-              color: homeChoice ? "#ccc" : "#666", fontSize: 12,
+              color: homeChoice ? "var(--text-secondary)" : "var(--text-label)", fontSize: 12,
             }}>
               <input
                 type="checkbox"
@@ -308,7 +308,7 @@ export default function OnboardingSurvey({ onComplete }) {
               onClick={handleSkipHome}
               style={{
                 width: "100%", marginTop: 10, background: "transparent", border: "none",
-                color: "#666", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 0",
+                color: "var(--text-label)", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 0",
               }}
             >
               Skip
@@ -317,7 +317,7 @@ export default function OnboardingSurvey({ onComplete }) {
               onClick={handleBack}
               style={{
                 width: "100%", marginTop: 4, background: "transparent", border: "none",
-                color: "#555", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 0",
+                color: "var(--text-faint)", fontSize: 12, fontFamily: "inherit", cursor: "pointer", padding: "8px 0",
               }}
             >
               Back
@@ -326,13 +326,13 @@ export default function OnboardingSurvey({ onComplete }) {
         ) : (
           <>
             <div style={{
-              fontSize: 11, color: "#555", letterSpacing: 3, textTransform: "uppercase",
+              fontSize: 11, color: "var(--text-faint)", letterSpacing: 3, textTransform: "uppercase",
               marginBottom: 8, textAlign: "center",
             }}>
               Your Profile
             </div>
             <div style={{
-              fontSize: 18, fontWeight: 600, color: "#f0f0f0", textAlign: "center",
+              fontSize: 18, fontWeight: 600, color: "var(--text-heading)", textAlign: "center",
               marginBottom: 12,
             }}>
               Comfort Calibration
@@ -344,23 +344,23 @@ export default function OnboardingSurvey({ onComplete }) {
               {totalAdj > 0 ? "+" : ""}{totalAdj}&deg;F
             </div>
             <div style={{
-              fontSize: 13, color: "#888", textAlign: "center",
+              fontSize: 13, color: "var(--text-dim)", textAlign: "center",
               marginBottom: 32, lineHeight: 1.5, maxWidth: 320, margin: "0 auto 32px",
             }}>
               {adjLabel}
             </div>
             <div style={{
-              background: "#111", border: "1px solid #1a1a1a", borderRadius: 8,
+              background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8,
               padding: 16, marginBottom: 24,
             }}>
-              <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>Your answers:</div>
+              <div style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 8 }}>Your answers:</div>
               {ONBOARDING_QUESTIONS.map((q, i) => {
                 const selected = q.answers.find((a) => a.points === answers[i]);
                 return (
                   <div key={i} style={{
-                    fontSize: 12, color: "#888", marginBottom: 4, lineHeight: 1.5,
+                    fontSize: 12, color: "var(--text-dim)", marginBottom: 4, lineHeight: 1.5,
                   }}>
-                    <span style={{ color: "#555" }}>{i + 1}.</span> {selected?.label}
+                    <span style={{ color: "var(--text-faint)" }}>{i + 1}.</span> {selected?.label}
                     <span style={{ color: "#f97316", marginLeft: 6 }}>
                       {answers[i] > 0 ? "+" : ""}{answers[i]}
                     </span>
@@ -368,8 +368,8 @@ export default function OnboardingSurvey({ onComplete }) {
                 );
               })}
               {homeSet && homeChoice && (
-                <div style={{ fontSize: 12, color: "#888", marginTop: 8, lineHeight: 1.5 }}>
-                  <span style={{ color: "#555" }}>Home:</span> {homeChoice.name}
+                <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 8, lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-faint)" }}>Home:</span> {homeChoice.name}
                 </div>
               )}
             </div>
@@ -387,7 +387,7 @@ export default function OnboardingSurvey({ onComplete }) {
               onClick={handleBack}
               style={{
                 width: "100%", marginTop: 10, background: "transparent", border: "none",
-                color: "#555", fontSize: 12, fontFamily: "inherit",
+                color: "var(--text-faint)", fontSize: 12, fontFamily: "inherit",
                 cursor: "pointer", padding: "8px 0",
               }}
             >

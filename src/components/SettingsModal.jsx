@@ -8,6 +8,7 @@ export default function SettingsModal({
   personalAdj, onPersonalAdjChange,
   notifPermission, notifTime, notifEnabled, onRequestNotifications, onSaveNotifTime, onSetNotifEnabled,
   onRedoOnboarding,
+  themePref, onThemeChange,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
@@ -64,134 +65,54 @@ export default function SettingsModal({
 
   return (
     <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex",
+      position: "fixed", inset: 0, background: "var(--overlay)", display: "flex",
       alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16,
       overflowY: "auto",
     }} onClick={onCancel}>
       <div style={{
-        background: "#111", border: "1px solid #333", borderRadius: 10, padding: 24,
+        background: "var(--bg-card)", border: "1px solid var(--border-btn)", borderRadius: 10, padding: 24,
         width: "100%", maxWidth: 380, display: "flex", flexDirection: "column", gap: 24,
       }} onClick={(e) => e.stopPropagation()}>
 
-        {/* ── Home Location ── */}
-        <section>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#f0f0f0", marginBottom: 14, letterSpacing: 0.2 }}>
-            Home Location
-          </div>
-
-          <label style={{ fontSize: 11, color: "#666", display: "block", marginBottom: 4 }}>Search by City Name</label>
-          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Orlando"
-              style={{
-                flex: 1, padding: "8px 10px", background: "#0a0a0a", border: "1px solid #333",
-                borderRadius: 4, color: "#e0e0e0", fontFamily: "inherit", fontSize: 12, outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
-            <button
-              onClick={handleSearch}
-              disabled={searching}
-              style={{
-                background: "transparent", border: "1px solid #333", borderRadius: 4,
-                color: searching ? "#444" : "#ccc", fontFamily: "inherit", fontSize: 11,
-                padding: "8px 12px", cursor: searching ? "default" : "pointer",
-              }}
-            >
-              {searching ? "..." : "Search"}
-            </button>
-          </div>
-
-          {searchResults.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
-              {searchResults.map((result) => {
-                const isSelected = selectedHome.lat === result.lat && selectedHome.lng === result.lng;
-                return (
-                  <button
-                    key={`${result.name}:${result.lat}:${result.lng}`}
-                    onClick={() => setSelectedHome(result)}
-                    style={{
-                      width: "100%", textAlign: "left", padding: "9px 10px",
-                      fontSize: 12, fontFamily: "inherit",
-                      background: isSelected ? "rgba(249,115,22,0.15)" : "#0a0a0a",
-                      border: isSelected ? "1px solid #f97316" : "1px solid #333",
-                      borderRadius: 6, color: isSelected ? "#f97316" : "#ccc", cursor: "pointer",
-                    }}
-                  >
-                    {result.name}
-                  </button>
-                );
-              })}
+        {/* ── Appearance ── */}
+        {onThemeChange && (
+          <section>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-heading)", marginBottom: 14, letterSpacing: 0.2 }}>
+              Appearance
             </div>
-          )}
-
-          {searchError && (
-            <div style={{ fontSize: 11, color: "#ef4444", marginBottom: 10 }}>{searchError}</div>
-          )}
-
-          <button onClick={handleUseGPS} style={{
-            background: "transparent", border: "1px solid #333", borderRadius: 4,
-            color: "#888", fontFamily: "inherit", fontSize: 11, padding: "4px 10px",
-            cursor: "pointer", marginBottom: 14,
-          }}>
-            Use Current GPS
-          </button>
-
-          <div style={{
-            background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 6, padding: 10,
-            marginBottom: 14,
-          }}>
-            <div style={{ fontSize: 10, color: "#666", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>
-              Selected Home
+            <div style={{ display: "flex", gap: 8 }}>
+              {[
+                { value: "light", label: "Light" },
+                { value: "dark", label: "Dark" },
+                { value: "auto", label: "Auto" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => onThemeChange(opt.value)}
+                  style={{
+                    flex: 1, padding: "8px 10px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
+                    background: themePref === opt.value ? "#f97316" : "transparent",
+                    color: themePref === opt.value ? "#000" : "var(--text-dim)",
+                    border: themePref === opt.value ? "1px solid #f97316" : "1px solid var(--border-btn)",
+                    borderRadius: 6, cursor: "pointer",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
-            <div style={{ fontSize: 12, color: "#f0f0f0", fontWeight: 600 }}>{selectedHome.name}</div>
-            <div style={{ fontSize: 11, color: "#777", marginTop: 2 }}>
-              {selectedHome.lat.toFixed(4)}, {selectedHome.lng.toFixed(4)}
-            </div>
-          </div>
-
-          <div style={{ fontSize: 11, color: "#888", marginBottom: 8 }}>Default Location on Startup</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={() => setSelectedPref("gps")}
-              style={{
-                flex: 1, padding: "8px 10px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
-                background: selectedPref === "gps" ? "#f97316" : "transparent",
-                color: selectedPref === "gps" ? "#000" : "#777",
-                border: selectedPref === "gps" ? "1px solid #f97316" : "1px solid #333",
-                borderRadius: 6, cursor: "pointer",
-              }}
-            >
-              Current Location
-            </button>
-            <button
-              onClick={() => setSelectedPref("home")}
-              style={{
-                flex: 1, padding: "8px 10px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
-                background: selectedPref === "home" ? "#f97316" : "transparent",
-                color: selectedPref === "home" ? "#000" : "#777",
-                border: selectedPref === "home" ? "1px solid #f97316" : "1px solid #333",
-                borderRadius: 6, cursor: "pointer",
-              }}
-            >
-              Home
-            </button>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ── Comfort Calibration ── */}
         {onPersonalAdjChange && (
           <section>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#f0f0f0", marginBottom: 14, letterSpacing: 0.2 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-heading)", marginBottom: 14, letterSpacing: 0.2 }}>
               Comfort Calibration
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: 11, color: "#888" }}>How you feel temperatures</span>
-              <span style={{ fontSize: 13, color: personalAdj !== 0 ? "#f97316" : "#e0e0e0", fontWeight: 700 }}>
+              <span style={{ fontSize: 11, color: "var(--text-dim)" }}>How you feel temperatures</span>
+              <span style={{ fontSize: 13, color: personalAdj !== 0 ? "#f97316" : "var(--text)", fontWeight: 700 }}>
                 {personalAdj > 0 ? `+${personalAdj}` : personalAdj}&deg;F
               </span>
             </div>
@@ -200,7 +121,7 @@ export default function SettingsModal({
               onChange={(e) => onPersonalAdjChange(Number(e.target.value))}
               style={{ width: "100%", accentColor: "#f97316", marginBottom: 4 }}
             />
-            <div style={{ fontSize: 10, color: "#555", textAlign: "center" }}>
+            <div style={{ fontSize: 10, color: "var(--text-faint)", textAlign: "center" }}>
               &larr; I run cold&nbsp;&nbsp;|&nbsp;&nbsp;I run hot &rarr;
             </div>
           </section>
@@ -209,12 +130,12 @@ export default function SettingsModal({
         {/* ── Notifications ── */}
         {notifPermission !== undefined && (
           <section>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#f0f0f0", marginBottom: 14, letterSpacing: 0.2 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-heading)", marginBottom: 14, letterSpacing: 0.2 }}>
               Notifications
             </div>
 
             {notifPermission === "denied" && (
-              <div style={{ fontSize: 11, color: "#666", background: "#0a0a0a", borderRadius: 6, padding: "10px 12px" }}>
+              <div style={{ fontSize: 11, color: "var(--text-label)", background: "var(--bg-input)", borderRadius: 6, padding: "10px 12px" }}>
                 Notifications are blocked in your browser settings.
               </div>
             )}
@@ -239,14 +160,14 @@ export default function SettingsModal({
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   marginBottom: notifEnabled ? 12 : 0,
                 }}>
-                  <span style={{ fontSize: 11, color: "#888" }}>Daily alerts</span>
+                  <span style={{ fontSize: 11, color: "var(--text-dim)" }}>Daily alerts</span>
                   <button
                     onClick={() => onSetNotifEnabled(!notifEnabled)}
                     style={{
                       background: notifEnabled ? "rgba(249,115,22,0.15)" : "transparent",
-                      border: notifEnabled ? "1px solid #f97316" : "1px solid #333",
+                      border: notifEnabled ? "1px solid #f97316" : "1px solid var(--border-btn)",
                       borderRadius: 6,
-                      color: notifEnabled ? "#f97316" : "#888",
+                      color: notifEnabled ? "#f97316" : "var(--text-dim)",
                       fontFamily: "inherit",
                       fontSize: 10,
                       fontWeight: 700,
@@ -259,12 +180,12 @@ export default function SettingsModal({
                 </div>
 
                 {!notifEnabled ? (
-                  <div style={{ fontSize: 11, color: "#666", background: "#0a0a0a", borderRadius: 6, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-label)", background: "var(--bg-input)", borderRadius: 6, padding: "10px 12px" }}>
                     Notifications are disabled. Turn them back on anytime.
                   </div>
                 ) : editingNotifTime ? (
                   <div>
-                    <div style={{ fontSize: 11, color: "#666", marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, color: "var(--text-label)", marginBottom: 8 }}>
                       Pick a time to receive your daily outfit recommendation:
                     </div>
                     <NotifTimePicker
@@ -276,23 +197,23 @@ export default function SettingsModal({
                 ) : (
                   <div style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 6, padding: "10px 12px",
+                    background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: 6, padding: "10px 12px",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="#555">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--text-faint)">
                         <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 01-3.46 0" />
                       </svg>
-                      <span style={{ fontSize: 11, color: "#aaa" }}>Daily at</span>
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Daily at</span>
                       <span style={{ fontSize: 12, color: "#f97316", fontWeight: 700 }}>
-                        {notifTime ? formatTime12h(notifTime) : "—"}
+                        {notifTime ? formatTime12h(notifTime) : "\u2014"}
                       </span>
                     </div>
                     <button
                       onClick={() => setEditingNotifTime(true)}
                       style={{
-                        background: "transparent", border: "1px solid #333", borderRadius: 4,
-                        color: "#888", fontFamily: "inherit", fontSize: 10, padding: "3px 8px", cursor: "pointer",
+                        background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 4,
+                        color: "var(--text-dim)", fontFamily: "inherit", fontSize: 10, padding: "3px 8px", cursor: "pointer",
                       }}
                     >
                       Edit
@@ -304,14 +225,124 @@ export default function SettingsModal({
           </section>
         )}
 
+        {/* ── Home Location ── */}
+        <section>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-heading)", marginBottom: 14, letterSpacing: 0.2 }}>
+            Home Location
+          </div>
+
+          <label style={{ fontSize: 11, color: "var(--text-label)", display: "block", marginBottom: 4 }}>Search by City Name</label>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="Orlando"
+              style={{
+                flex: 1, padding: "8px 10px", background: "var(--bg-input)", border: "1px solid var(--border-btn)",
+                borderRadius: 4, color: "var(--text)", fontFamily: "inherit", fontSize: 12, outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              onClick={handleSearch}
+              disabled={searching}
+              style={{
+                background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 4,
+                color: searching ? "var(--text-disabled)" : "var(--text-secondary)", fontFamily: "inherit", fontSize: 11,
+                padding: "8px 12px", cursor: searching ? "default" : "pointer",
+              }}
+            >
+              {searching ? "..." : "Search"}
+            </button>
+          </div>
+
+          {searchResults.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+              {searchResults.map((result) => {
+                const isSelected = selectedHome.lat === result.lat && selectedHome.lng === result.lng;
+                return (
+                  <button
+                    key={`${result.name}:${result.lat}:${result.lng}`}
+                    onClick={() => setSelectedHome(result)}
+                    style={{
+                      width: "100%", textAlign: "left", padding: "9px 10px",
+                      fontSize: 12, fontFamily: "inherit",
+                      background: isSelected ? "rgba(249,115,22,0.15)" : "var(--bg-input)",
+                      border: isSelected ? "1px solid #f97316" : "1px solid var(--border-btn)",
+                      borderRadius: 6, color: isSelected ? "#f97316" : "var(--text-secondary)", cursor: "pointer",
+                    }}
+                  >
+                    {result.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {searchError && (
+            <div style={{ fontSize: 11, color: "#ef4444", marginBottom: 10 }}>{searchError}</div>
+          )}
+
+          <button onClick={handleUseGPS} style={{
+            background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 4,
+            color: "var(--text-dim)", fontFamily: "inherit", fontSize: 11, padding: "4px 10px",
+            cursor: "pointer", marginBottom: 14,
+          }}>
+            Use Current GPS
+          </button>
+
+          <div style={{
+            background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: 6, padding: 10,
+            marginBottom: 14,
+          }}>
+            <div style={{ fontSize: 10, color: "var(--text-label)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>
+              Selected Home
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-heading)", fontWeight: 600 }}>{selectedHome.name}</div>
+            <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>
+              {selectedHome.lat.toFixed(4)}, {selectedHome.lng.toFixed(4)}
+            </div>
+          </div>
+
+          <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 8 }}>Default Location on Startup</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => setSelectedPref("gps")}
+              style={{
+                flex: 1, padding: "8px 10px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
+                background: selectedPref === "gps" ? "#f97316" : "transparent",
+                color: selectedPref === "gps" ? "#000" : "var(--text-dim)",
+                border: selectedPref === "gps" ? "1px solid #f97316" : "1px solid var(--border-btn)",
+                borderRadius: 6, cursor: "pointer",
+              }}
+            >
+              Current Location
+            </button>
+            <button
+              onClick={() => setSelectedPref("home")}
+              style={{
+                flex: 1, padding: "8px 10px", fontSize: 11, fontFamily: "inherit", fontWeight: 600,
+                background: selectedPref === "home" ? "#f97316" : "transparent",
+                color: selectedPref === "home" ? "#000" : "var(--text-dim)",
+                border: selectedPref === "home" ? "1px solid #f97316" : "1px solid var(--border-btn)",
+                borderRadius: 6, cursor: "pointer",
+              }}
+            >
+              Home
+            </button>
+          </div>
+        </section>
+
         {/* ── Redo Onboarding ── */}
         {onRedoOnboarding && (
           <section>
             <button
               onClick={onRedoOnboarding}
               style={{
-                background: "transparent", border: "1px solid #333", borderRadius: 6,
-                color: "#888", fontFamily: "inherit", fontSize: 11, padding: "8px 14px",
+                background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 6,
+                color: "var(--text-dim)", fontFamily: "inherit", fontSize: 11, padding: "8px 14px",
                 cursor: "pointer", width: "100%",
               }}
             >
@@ -323,8 +354,8 @@ export default function SettingsModal({
         {/* ── Actions ── */}
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <button onClick={onCancel} style={{
-            background: "transparent", border: "1px solid #333", borderRadius: 4,
-            color: "#888", fontFamily: "inherit", fontSize: 12, padding: "8px 16px", cursor: "pointer",
+            background: "transparent", border: "1px solid var(--border-btn)", borderRadius: 4,
+            color: "var(--text-dim)", fontFamily: "inherit", fontSize: 12, padding: "8px 16px", cursor: "pointer",
           }}>
             Cancel
           </button>

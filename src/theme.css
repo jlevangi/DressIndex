@@ -1,0 +1,64 @@
+/* ── Dark theme (default) ── */
+:root {
+  --bg-page: #0a0a0a;
+  --bg-card: #141414;
+  --bg-secondary: #1c1c1c;
+  --bg-input: #0e0e0e;
+  --bg-hover: #2a2a2a;
+  --border: #222;
+  --border-btn: #383838;
+  --text-heading: #f0f0f0;
+  --text: #e0e0e0;
+  --text-secondary: #d0d0d0;
+  --text-muted: #aaa;
+  --text-dim: #909090;
+  --text-label: #757575;
+  --text-faint: #606060;
+  --text-disabled: #484848;
+  --overlay: rgba(0,0,0,0.7);
+  --shimmer: rgba(255,255,255,0.07);
+}
+
+/* ── Light theme (explicit) ── */
+[data-theme="light"] {
+  --bg-page: #ededed;
+  --bg-card: #ffffff;
+  --bg-secondary: #f7f7f7;
+  --bg-input: #f3f3f3;
+  --bg-hover: #e2e2e2;
+  --border: #d4d4d4;
+  --border-btn: #c0c0c0;
+  --text-heading: #111;
+  --text: #222;
+  --text-secondary: #3a3a3a;
+  --text-muted: #555;
+  --text-dim: #666;
+  --text-label: #777;
+  --text-faint: #888;
+  --text-disabled: #aaa;
+  --overlay: rgba(0,0,0,0.4);
+  --shimmer: rgba(0,0,0,0.06);
+}
+
+/* ── Auto theme — follows system preference ── */
+@media (prefers-color-scheme: light) {
+  [data-theme="auto"] {
+    --bg-page: #ededed;
+    --bg-card: #ffffff;
+    --bg-secondary: #f7f7f7;
+    --bg-input: #f3f3f3;
+    --bg-hover: #e2e2e2;
+    --border: #d4d4d4;
+    --border-btn: #c0c0c0;
+    --text-heading: #111;
+    --text: #222;
+    --text-secondary: #3a3a3a;
+    --text-muted: #555;
+    --text-dim: #666;
+    --text-label: #777;
+    --text-faint: #888;
+    --text-disabled: #aaa;
+    --overlay: rgba(0,0,0,0.4);
+    --shimmer: rgba(0,0,0,0.06);
+  }
+}

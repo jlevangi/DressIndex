@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
 const cardStyle = {
-  background: "#111",
-  border: "1px solid #1a1a1a",
+  background: "var(--bg-card)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
   padding: 16,
   marginBottom: 20,
@@ -32,13 +32,13 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
     return (
       <div style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
+          <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: 2, textTransform: "uppercase" }}>
             Comfort Check
           </div>
           <button
             onClick={onDismiss}
             style={{
-              background: "transparent", border: "none", color: "#555",
+              background: "transparent", border: "none", color: "var(--text-faint)",
               fontSize: 16, cursor: "pointer", padding: "0 4px", lineHeight: 1,
             }}
             aria-label="Dismiss"
@@ -46,7 +46,7 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
             &times;
           </button>
         </div>
-        <div style={{ fontSize: 13, color: "#e0e0e0", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: "var(--text)", marginBottom: 14 }}>
           How did today's recommendation feel?
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -59,7 +59,7 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
             }}
           >
             <div>{"\u2193"} Underdressed</div>
-            <div style={{ fontSize: 10, fontWeight: 400, color: "#888", marginTop: 2 }}>Colder than expected</div>
+            <div style={{ fontSize: 10, fontWeight: 400, color: "var(--text-dim)", marginTop: 2 }}>Colder than expected</div>
           </button>
           <button
             onClick={() => onRespond("right")}
@@ -80,7 +80,7 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
             }}
           >
             <div>{"\u2191"} Overdressed</div>
-            <div style={{ fontSize: 10, fontWeight: 400, color: "#888", marginTop: 2 }}>Warmer than expected</div>
+            <div style={{ fontSize: 10, fontWeight: 400, color: "var(--text-dim)", marginTop: 2 }}>Warmer than expected</div>
           </button>
         </div>
       </div>
@@ -92,10 +92,10 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
     const arrow = adjustDirection > 0 ? "+" : "";
     return (
       <div style={cardStyle}>
-        <div style={{ fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>
           Calibration Suggestion
         </div>
-        <div style={{ fontSize: 13, color: "#e0e0e0", marginBottom: 14, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: "var(--text)", marginBottom: 14, lineHeight: 1.5 }}>
           Based on your recent feedback, we suggest {direction === "raise" ? "raising" : "lowering"} your
           calibration by {Math.abs(adjustDirection)}&deg;F.
         </div>
@@ -113,8 +113,8 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
             onClick={onDismiss}
             style={{
               ...btnBase, flex: 1,
-              background: "transparent", color: "#888",
-              border: "1px solid #333",
+              background: "transparent", color: "var(--text-dim)",
+              border: "1px solid var(--border-btn)",
             }}
           >
             Dismiss
@@ -130,10 +130,10 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
         <div style={{ fontSize: 24, marginBottom: 6 }}>
           <span style={{ color: "#22c55e" }}>{"\u2713"}</span>
         </div>
-        <div style={{ fontSize: 13, color: "#ccc", fontWeight: 600 }}>
+        <div style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
           Response recorded
         </div>
-        <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 4 }}>
           Thanks for the feedback!
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function SurveyCard({ surveyState, onRespond, onAcceptAdjust, onD
         <div style={{ fontSize: 13, color: "#22c55e", fontWeight: 600 }}>
           You're dialed in!
         </div>
-        <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 4 }}>
           We'll check back in a month.
         </div>
       </div>

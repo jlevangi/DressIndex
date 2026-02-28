@@ -15,10 +15,17 @@ export function getSkyMod(cloudCover) {
   return -3;
 }
 
-export function getPrecipMod(intensity) {
-  if (!intensity || intensity < 0.01) return 0;
-  if (intensity < 0.1) return -2;
-  return -4;
+export function getPrecipMod(intensity, probability = 0) {
+  if ((!intensity || intensity < 0.01) && probability <= 0.5) return 0;
+
+  let base = 0;
+  if (intensity >= 0.1)       base = -4;
+  else if (intensity >= 0.01) base = -2;
+
+  // High probability amplifies the effect (sustained rain feels worse)
+  if (probability > 0.5) base -= 2;
+
+  return base;
 }
 
 export function getUvMod(uvIndex) {
@@ -39,7 +46,7 @@ export function computeEffective(data, personalAdj) {
   const baseTemp = data.temperature || 0;
   const wMod = getWindMod(data.windSpeed || 0, baseTemp);
   const sMod = getSkyMod(data.cloudCover || 0);
-  const pMod = getPrecipMod(data.precipIntensity);
+  const pMod = getPrecipMod(data.precipIntensity, data.precipProbability);
   const uMod = getUvMod(data.uvIndex);
   const dMod = dewPointMod(data.dewPoint || 50);
   const total = wMod + sMod + pMod + uMod + dMod + personalAdj;
@@ -51,7 +58,7 @@ export function computeEffective(data, personalAdj) {
   };
 }
 
-export function getClothing(eff) {
+export function getClothing(eff, data = null) {
   let top, bottom, color;
   if (eff >= 85)      { top = "Topless";      bottom = "Speedo"; color = "#ec4899"; }
   else if (eff >= 70) { top = "T-Shirt";      bottom = "Shorts"; color = "#22c55e"; }
@@ -61,6 +68,12 @@ export function getClothing(eff) {
   else if (eff >= 38) { top = "Hoodie";       bottom = "Pants";  color = "#ef4444"; }
   else if (eff >= 30) { top = "Medium Coat";  bottom = "Pants";  color = "#3b82f6"; }
   else                { top = "Winter Coat";  bottom = "Pants";  color = "#8b5cf6"; }
+
+  // Significant rain makes shorts impractical regardless of temperature
+  if (data && (data.precipProbability || 0) > 0.4 && (data.precipIntensity || 0) > 0.02) {
+    if (bottom === "Shorts") bottom = "Pants";
+  }
+
   return { top, bottom, color };
 }
 
@@ -146,7 +159,7 @@ export function getDayRecommendation(hourlyData, personalAdj, startHour = 6) {
     }
   }
 
-  const clothing = getClothing(coldestEff);
+  const clothing = getClothing(coldestEff, coldestHour);
   if (needsPants) clothing.bottom = "Pants";
 
   // Compute accessory tags for the coldest hour using all relevant hours

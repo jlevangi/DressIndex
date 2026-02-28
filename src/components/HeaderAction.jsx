@@ -50,7 +50,7 @@ export default function HeaderAction({
             onClick={onDismissIOSGuide}
             style={{
               position: "fixed", inset: 0, zIndex: 9999,
-              background: "rgba(0,0,0,0.7)",
+              background: "var(--overlay)",
               display: "flex", flexDirection: "column",
               justifyContent: "flex-end", alignItems: "center",
               padding: "0 24px 48px",
@@ -59,26 +59,26 @@ export default function HeaderAction({
             <div
               onClick={(e) => e.stopPropagation()}
               style={{
-                background: "#1a1a1a", borderRadius: 12,
+                background: "var(--bg-secondary)", borderRadius: 12,
                 padding: "20px 24px", maxWidth: 320, width: "100%",
-                textAlign: "center", color: "#e0e0e0",
+                textAlign: "center", color: "var(--text)",
               }}
             >
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Install DressIndex</div>
-              <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.5 }}>
-                Tap the <strong style={{ color: "#e0e0e0" }}>Share</strong> button
+              <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                Tap the <strong style={{ color: "var(--text)" }}>Share</strong> button
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", margin: "0 4px" }}>
                   <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
                   <polyline points="16 6 12 2 8 6" />
                   <line x1="12" y1="2" x2="12" y2="15" />
                 </svg>
-                in the toolbar, then select <strong style={{ color: "#e0e0e0" }}>"Add to Home Screen"</strong>
+                in the toolbar, then select <strong style={{ color: "var(--text)" }}>"Add to Home Screen"</strong>
               </div>
               <button
                 onClick={onDismissIOSGuide}
                 style={{
-                  marginTop: 16, background: "#333", border: "none",
-                  borderRadius: 6, color: "#aaa", fontSize: 13,
+                  marginTop: 16, background: "var(--bg-hover)", border: "none",
+                  borderRadius: 6, color: "var(--text-muted)", fontSize: 13,
                   padding: "8px 20px", cursor: "pointer", fontFamily: "inherit",
                 }}
               >
@@ -116,8 +116,8 @@ export default function HeaderAction({
         onClick={onOpenSettings}
         style={{
           ...baseActionButtonStyle,
-          border: "1px solid #2a2a2a",
-          color: "#666",
+          border: "1px solid var(--bg-hover)",
+          color: "var(--text-label)",
           fontWeight: 500,
         }}
       >
@@ -137,13 +137,13 @@ export default function HeaderAction({
         onClick={onOpenSettings}
         style={{
           ...baseActionButtonStyle,
-          border: "1px solid #2a2a2a",
-          color: "#666",
+          border: "1px solid var(--bg-hover)",
+          color: "var(--text-label)",
           fontWeight: 500,
           gap: 5,
         }}
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="#555">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--text-faint)">
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 01-3.46 0" />
         </svg>
@@ -158,8 +158,8 @@ export default function HeaderAction({
         onClick={onOpenSettings}
         style={{
           ...baseActionButtonStyle,
-          border: "1px solid #333",
-          color: "#888",
+          border: "1px solid var(--border-btn)",
+          color: "var(--text-dim)",
           fontWeight: 500,
           gap: 5,
         }}
