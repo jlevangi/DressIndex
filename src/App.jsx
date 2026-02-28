@@ -104,7 +104,7 @@ export default function ClothingAlgo() {
   } = useNotifications({ weatherData, personalAdj, apiKey, lat, lng });
 
   const {
-    showSurvey, surveyState, onRespond, onAcceptAdjust, onDismiss, adjustDirection,
+    showSurvey, surveyState, recommendedClothingTier, onRespond, onStartExtend, onExtendRespond, onAcceptAdjust, onDismiss, adjustDirection,
   } = useSurvey({ weatherLoaded: !!currentData, currentData, personalAdj });
 
   const { themePref, setTheme } = useTheme();
@@ -327,7 +327,10 @@ export default function ClothingAlgo() {
                 {showSurvey && (
                   <SurveyCard
                     surveyState={surveyState}
+                    recommendedClothingTier={recommendedClothingTier}
                     onRespond={onRespond}
+                    onStartExtend={onStartExtend}
+                    onExtendRespond={onExtendRespond}
                     onAcceptAdjust={handleAcceptSurveyAdjust}
                     onDismiss={onDismiss}
                     adjustDirection={adjustDirection}
