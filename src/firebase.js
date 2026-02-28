@@ -4,6 +4,7 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 
 let db = null;
 let uid = null;
+const ENV_TAG = import.meta.env.DEV ? "dev" : "prod";
 
 const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
 if (apiKey) {
@@ -29,13 +30,13 @@ if (apiKey) {
 export async function logEvent(col, data) {
   if (!db || !uid) return;
   try {
-    await addDoc(collection(db, "users", uid, col), { ...data, ts: serverTimestamp() });
+    await addDoc(collection(db, "users", uid, col), { ...data, _env: ENV_TAG, ts: serverTimestamp() });
   } catch (_) { /* Firestore failure should never break the app */ }
 }
 
 export async function logTopLevel(data) {
   if (!db || !uid) return;
   try {
-    await setDoc(doc(db, "users", uid), { ...data, ts: serverTimestamp() }, { merge: true });
+    await setDoc(doc(db, "users", uid), { ...data, _env: ENV_TAG, ts: serverTimestamp() }, { merge: true });
   } catch (_) { /* Firestore failure should never break the app */ }
 }

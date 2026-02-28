@@ -6,9 +6,10 @@ import { logEvent } from "../firebase.js";
 const DAY_MS = 86400000;
 
 export default function useSurvey({ weatherLoaded, currentData, personalAdj }) {
-  const [surveyState, setSurveyState] = useState(null); // null | "ask" | "thanks" | "suggest-lower" | "suggest-raise" | "dialed-in"
+  const [surveyState, setSurveyState] = useState(null); // null | "ask" | "ask-extend" | "extend-questions" | "extend-thanks" | "suggest-lower" | "suggest-raise"
   const [adjustDirection, setAdjustDirection] = useState(0); // -2 or +2
   const [dismissed, setDismissed] = useState(false);
+  const [lastComfortContext, setLastComfortContext] = useState(null);
 
   const devAlwaysShow = import.meta.env.DEV && import.meta.env.VITE_SURVEY_DEBUG === "true";
 
@@ -36,8 +37,8 @@ export default function useSurvey({ weatherLoaded, currentData, personalAdj }) {
 
         const now = Date.now();
 
-        // Suppress during first 3 days after onboarding
-        if (onboardingTs && now - onboardingTs < 3 * DAY_MS) return;
+        // Suppress during first day after onboarding
+        if (onboardingTs && now - onboardingTs < DAY_MS) return;
 
         // Suppress if already surveyed today
         if (lastSurveyTs) {
@@ -46,18 +47,18 @@ export default function useSurvey({ weatherLoaded, currentData, personalAdj }) {
           if (lastDate === todayDate) return;
         }
 
-        // Primary trigger: 2+ adjHistory entries within last 7 days
+        // Primary trigger: 1+ adjHistory entries within last 7 days
         const recentAdj = (adjHistory || []).filter(
           (e) => now - e.ts < 7 * DAY_MS
         );
-        if (recentAdj.length >= 2) {
+        if (recentAdj.length >= 1) {
           setSurveyState("ask");
           return;
         }
 
-        // Secondary trigger: 14+ days since last survey or onboarding
+        // Secondary trigger: 5+ days since last survey or onboarding
         const lastActivity = lastSurveyTs || onboardingTs || 0;
-        if (lastActivity && now - lastActivity >= 14 * DAY_MS) {
+        if (lastActivity && now - lastActivity >= 5 * DAY_MS) {
           setSurveyState("ask");
           return;
         }
@@ -83,59 +84,95 @@ export default function useSurvey({ weatherLoaded, currentData, personalAdj }) {
       clothingTier = getClothing(effectiveTemp).top;
     }
 
+    const context = { response, personalAdj, effectiveTemp, actualTemp, clothingTier };
+    setLastComfortContext(context);
+
+    let history = [];
     try {
-      const history = (await getConfig("surveyHistory")) || [];
-      history.push({ response, ts: now, personalAdj, effectiveTemp, actualTemp, clothingTier });
-      await setConfig("surveyHistory", history.slice(-50));
-      await setConfig("lastSurveyTs", now);
-      logEvent("surveys", { response, personalAdj, effectiveTemp, actualTemp, clothingTier });
-
-      // Check last 3 responses for pattern
-      const last3 = history.slice(-3);
-      if (last3.length >= 3) {
-        const overCount = last3.filter((e) => e.response === "over").length;
-        const underCount = last3.filter((e) => e.response === "under").length;
-        const rightCount = last3.filter((e) => e.response === "right").length;
-
-        if (overCount >= 2) {
-          setAdjustDirection(-2);
-          setSurveyState("suggest-lower");
-          return;
-        }
-        if (underCount >= 2) {
-          setAdjustDirection(2);
-          setSurveyState("suggest-raise");
-          return;
-        }
-        if (rightCount >= 2) {
-          // Suppress surveys for 30 days by pushing lastSurveyTs far forward
-          await setConfig("lastSurveyTs", now + 30 * DAY_MS);
-          setSurveyState("dialed-in");
-          return;
-        }
-      }
-
-      // Mixed — show thanks confirmation
-      setSurveyState("thanks");
+      history = (await getConfig("surveyHistory")) || [];
     } catch (_) {
-      setSurveyState("thanks");
+      history = [];
     }
+
+    const updatedHistory = [...history, { ...context, ts: now }];
+
+    try {
+      await setConfig("surveyHistory", updatedHistory.slice(-50));
+      await setConfig("lastSurveyTs", now);
+    } catch (_) {
+      // IDB failures should not block survey flow
+    }
+
+    logEvent("surveys", context);
+
+    // Check last 3 responses for pattern
+    const last3 = updatedHistory.slice(-3);
+    if (last3.length >= 3) {
+      const overCount = last3.filter((e) => e.response === "over").length;
+      const underCount = last3.filter((e) => e.response === "under").length;
+
+      if (overCount >= 2) {
+        setAdjustDirection(-2);
+        setSurveyState("suggest-lower");
+        return;
+      }
+      if (underCount >= 2) {
+        setAdjustDirection(2);
+        setSurveyState("suggest-raise");
+        return;
+      }
+    }
+
+    setSurveyState("ask-extend");
   }, [currentData, personalAdj]);
+
+  const onStartExtend = useCallback(() => {
+    setSurveyState("extend-questions");
+  }, []);
+
+  const onExtendRespond = useCallback(async ({ clothing, recommendationMatch, layerChange, comfortDriver }) => {
+    const context = lastComfortContext || {
+      response: null,
+      effectiveTemp: null,
+      actualTemp: null,
+      clothingTier: null,
+      personalAdj,
+    };
+
+    await logEvent("extendedSurveys", {
+      clothing,
+      recommendationMatch,
+      layerChange,
+      comfortDriver,
+      comfortResponse: context.response,
+      effectiveTemp: context.effectiveTemp,
+      actualTemp: context.actualTemp,
+      clothingTier: context.clothingTier,
+      personalAdj: context.personalAdj,
+    });
+
+    setSurveyState("extend-thanks");
+  }, [lastComfortContext, personalAdj]);
 
   const onAcceptAdjust = useCallback(() => {
     setSurveyState(null);
     setDismissed(true);
+    setLastComfortContext(null);
   }, []);
 
   const onDismiss = useCallback(() => {
     setSurveyState(null);
     setDismissed(true);
+    setLastComfortContext(null);
   }, []);
 
   return {
     showSurvey: surveyState !== null && !dismissed,
     surveyState,
+    recommendedClothingTier: lastComfortContext?.clothingTier || null,
     onRespond,
+    onStartExtend,
+    onExtendRespond,
     onAcceptAdjust,
     onDismiss,
     adjustDirection,
