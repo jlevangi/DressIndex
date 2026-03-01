@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { DEFAULT_HOME, PRESET_LOCATIONS } from "../constants.js";
+import { reverseGeocode } from "../geocode.js";
 
 const USER_SAVED_LOCATIONS_KEY = "dressindex_saved_locations";
 const HIDDEN_PRESET_LOCATIONS_KEY = "dressindex_hidden_preset_locations";
@@ -87,6 +88,7 @@ export default function useLocation(defaultLocationPref) {
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
   const [locationName, setLocationName] = useState(null);
+  const [locationSource, setLocationSource] = useState(null); // "gps" | "named"
   const [showSettings, setShowSettings] = useState(false);
 
   const applyLocation = (loc) => {
@@ -95,7 +97,18 @@ export default function useLocation(defaultLocationPref) {
     setLat(normalized.lat);
     setLng(normalized.lng);
     setLocationName(normalized.name);
+    setLocationSource("named");
     return true;
+  };
+
+  const applyGpsLocation = async (latitude, longitude) => {
+    const roundedLat = Number(latitude.toFixed(4));
+    const roundedLng = Number(longitude.toFixed(4));
+    setLat(roundedLat);
+    setLng(roundedLng);
+    setLocationSource("gps");
+    const cityName = await reverseGeocode(roundedLat, roundedLng);
+    setLocationName(cityName || "Current Location");
   };
 
   const updateUserSavedLocations = (updater) => {
@@ -153,14 +166,13 @@ export default function useLocation(defaultLocationPref) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setLat(Number(pos.coords.latitude.toFixed(4)));
-          setLng(Number(pos.coords.longitude.toFixed(4)));
-          setLocationName("Current Location");
+          applyGpsLocation(pos.coords.latitude, pos.coords.longitude);
         },
         () => {
           setLat(homeLocation.lat);
           setLng(homeLocation.lng);
           setLocationName(homeLocation.name);
+          setLocationSource("named");
         },
         { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 }
       );
@@ -168,6 +180,7 @@ export default function useLocation(defaultLocationPref) {
       setLat(homeLocation.lat);
       setLng(homeLocation.lng);
       setLocationName(homeLocation.name);
+      setLocationSource("named");
     }
   }, [defaultLocationPref]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -175,9 +188,7 @@ export default function useLocation(defaultLocationPref) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setLat(Number(pos.coords.latitude.toFixed(4)));
-          setLng(Number(pos.coords.longitude.toFixed(4)));
-          setLocationName("Current Location");
+          applyGpsLocation(pos.coords.latitude, pos.coords.longitude);
         },
         () => setError("Geolocation denied."),
         { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 }
@@ -229,7 +240,7 @@ export default function useLocation(defaultLocationPref) {
   };
 
   return {
-    homeLocation, lat, lng, locationName,
+    homeLocation, lat, lng, locationName, locationSource,
     showSettings, setShowSettings,
     savedLocations,
     handleGeolocate, handleSaveHome,

@@ -11,6 +11,7 @@ function isMatchingCoords(currentLat, currentLng, loc) {
 
 export default function LocationBar({
   locationName,
+  locationSource,
   lat,
   lng,
   homeLocation,
@@ -95,6 +96,7 @@ export default function LocationBar({
   const availableSavedLocations = Array.isArray(savedLocations) ? savedLocations : [];
   const homeName = homeLocation?.name || "Not set";
   const isHomeActive = isLocationActive(homeLocation);
+  const isGpsActive = locationSource === "gps";
 
   return (
     <div style={{
@@ -135,13 +137,14 @@ export default function LocationBar({
             background: "var(--bg-card)", border: "1px solid var(--bg-hover)", borderRadius: 8,
             minWidth: 260, boxShadow: "0 8px 32px rgba(0,0,0,0.8)", overflow: "hidden",
           }}>
+            {/* Current Location (GPS) */}
             <button
               onClick={() => { onGeolocate(); closeDropdown(); }}
               style={{
                 display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left",
                 padding: "9px 14px", fontSize: 11, fontFamily: "inherit",
-                background: locationName === "Current Location" ? "rgba(249,115,22,0.12)" : "transparent",
-                color: locationName === "Current Location" ? "#f97316" : "var(--text-muted)",
+                background: isGpsActive ? "rgba(249,115,22,0.12)" : "transparent",
+                color: isGpsActive ? "#f97316" : "var(--text-muted)",
                 border: "none", borderBottom: "1px solid var(--border)", cursor: "pointer",
               }}
             >
@@ -149,9 +152,85 @@ export default function LocationBar({
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
                 <circle cx="12" cy="9" r="2.5" />
               </svg>
-              Current Location
+              <span style={{ fontWeight: isGpsActive ? 700 : 500 }}>Current Location</span>
             </button>
 
+            {/* Home */}
+            <button
+              onClick={() => {
+                onSelectHomeLocation?.();
+                closeDropdown();
+              }}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left",
+                padding: "9px 14px", fontSize: 11, fontFamily: "inherit",
+                background: !isGpsActive && isHomeActive ? "rgba(249,115,22,0.12)" : "transparent",
+                color: !isGpsActive && isHomeActive ? "#f97316" : "var(--text-muted)",
+                border: "none",
+                borderBottom: "1px solid var(--border)",
+                cursor: "pointer",
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              <span style={{ fontWeight: !isGpsActive && isHomeActive ? 700 : 500 }}>Home</span>
+              <span style={{ color: "var(--text-disabled)", fontSize: 10, marginLeft: "auto" }}>{homeName}</span>
+            </button>
+
+            {/* Saved / preset locations */}
+            {availableSavedLocations.map((loc, i) => {
+              const isActive = !isGpsActive && isLocationActive(loc);
+              const isLast = i === availableSavedLocations.length - 1;
+              return (
+                <div
+                  key={`saved:${loc.lat}:${loc.lng}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    borderBottom: "1px solid var(--border)",
+                  }}
+                >
+                  <button
+                    onClick={() => { onSelectLocation(loc); closeDropdown(); }}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      width: "100%", textAlign: "left",
+                      padding: "9px 8px 9px 14px", fontSize: 11, fontFamily: "inherit",
+                      background: isActive ? "rgba(249,115,22,0.12)" : "transparent",
+                      color: isActive ? "#f97316" : "var(--text-muted)",
+                      border: "none", cursor: "pointer",
+                    }}
+                  >
+                    <span style={{ fontWeight: isActive ? 700 : 500 }}>{loc.label}</span>
+                    <span style={{ color: "var(--text-disabled)", fontSize: 10 }}>{loc.name}</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveSavedLocation?.(loc);
+                    }}
+                    title="Remove saved location"
+                    style={{
+                      border: "none",
+                      borderLeft: "1px solid var(--border)",
+                      alignSelf: "stretch",
+                      width: 32,
+                      background: "transparent",
+                      color: "var(--text-faint)",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      lineHeight: 1,
+                    }}
+                  >
+                    x
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Search for a location */}
             <button
               onClick={() => {
                 setCustomOpen((open) => !open);
@@ -159,16 +238,20 @@ export default function LocationBar({
                 setCustomResults([]);
               }}
               style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
+                display: "flex", alignItems: "center", gap: 8,
                 width: "100%", textAlign: "left",
                 padding: "9px 14px", fontSize: 11, fontFamily: "inherit",
                 background: customOpen ? "rgba(249,115,22,0.12)" : "transparent",
                 color: customOpen ? "#f97316" : "var(--text-muted)",
-                border: "none", borderBottom: "1px solid var(--border)", cursor: "pointer",
+                border: "none", cursor: "pointer",
               }}
             >
-              <span style={{ fontWeight: 600 }}>Add custom location</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <span style={{ fontWeight: 600 }}>Search for a location</span>
+              <svg style={{ marginLeft: "auto" }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points={customOpen ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} />
               </svg>
             </button>
@@ -176,7 +259,6 @@ export default function LocationBar({
             {customOpen && (
               <div style={{
                 padding: 10,
-                borderBottom: "1px solid var(--border)",
                 background: "var(--bg-page)",
               }}>
                 <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
@@ -264,100 +346,6 @@ export default function LocationBar({
                   <div style={{ fontSize: 10, color: "#ef4444", marginTop: 8 }}>{customError}</div>
                 )}
               </div>
-            )}
-
-            <div style={{
-              fontSize: 10,
-              color: "var(--text-faint)",
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              padding: "8px 14px 6px",
-            }}>
-              Home
-            </div>
-
-            <button
-              onClick={() => {
-                onSelectHomeLocation?.();
-                closeDropdown();
-              }}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                width: "100%", textAlign: "left",
-                padding: "9px 14px", fontSize: 11, fontFamily: "inherit",
-                background: isHomeActive ? "rgba(249,115,22,0.12)" : "transparent",
-                color: isHomeActive ? "#f97316" : "var(--text-muted)",
-                border: "none",
-                borderBottom: availableSavedLocations.length === 0 ? "none" : "1px solid var(--border)",
-                cursor: "pointer",
-              }}
-            >
-              <span style={{ fontWeight: isHomeActive ? 700 : 500 }}>Home</span>
-              <span style={{ color: "var(--text-disabled)", fontSize: 10 }}>{homeName}</span>
-            </button>
-
-            {availableSavedLocations.length > 0 && (
-              <>
-                <div style={{
-                  fontSize: 10,
-                  color: "var(--text-faint)",
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                  padding: "8px 14px 6px",
-                  borderTop: "1px solid var(--border)",
-                }}>
-                  Saved locations
-                </div>
-                {availableSavedLocations.map((loc, i) => {
-                  const isActive = isLocationActive(loc);
-                  const isLast = i === availableSavedLocations.length - 1;
-                  return (
-                    <div
-                      key={`saved:${loc.lat}:${loc.lng}`}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        borderBottom: isLast ? "none" : "1px solid var(--border)",
-                      }}
-                    >
-                      <button
-                        onClick={() => { onSelectLocation(loc); closeDropdown(); }}
-                        style={{
-                          display: "flex", alignItems: "center", justifyContent: "space-between",
-                          width: "100%", textAlign: "left",
-                          padding: "9px 8px 9px 14px", fontSize: 11, fontFamily: "inherit",
-                          background: isActive ? "rgba(249,115,22,0.12)" : "transparent",
-                          color: isActive ? "#f97316" : "var(--text-muted)",
-                          border: "none", cursor: "pointer",
-                        }}
-                      >
-                        <span style={{ fontWeight: isActive ? 700 : 500 }}>{loc.label}</span>
-                        <span style={{ color: "var(--text-disabled)", fontSize: 10 }}>{loc.name}</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemoveSavedLocation?.(loc);
-                        }}
-                        title="Remove saved location"
-                        style={{
-                          border: "none",
-                          borderLeft: "1px solid var(--border)",
-                          alignSelf: "stretch",
-                          width: 32,
-                          background: "transparent",
-                          color: "var(--text-faint)",
-                          cursor: "pointer",
-                          fontSize: 14,
-                          lineHeight: 1,
-                        }}
-                      >
-                        x
-                      </button>
-                    </div>
-                  );
-                })}
-              </>
             )}
           </div>
         )}
