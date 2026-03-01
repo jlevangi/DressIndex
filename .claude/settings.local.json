@@ -27,7 +27,8 @@
       "Bash(git config:*)",
       "Bash(npm run build:pwa:*)",
       "Bash(git rm:*)",
-      "Bash(cmd.exe /c \"set ANDROID_HOME=C:\\\\Users\\\\pierc\\\\AppData\\\\Local\\\\Android\\\\Sdk&& set JAVA_HOME=C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr&& gradlew.bat assembleDebug\")"
+      "Bash(cmd.exe /c \"set ANDROID_HOME=C:\\\\Users\\\\pierc\\\\AppData\\\\Local\\\\Android\\\\Sdk&& set JAVA_HOME=C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr&& gradlew.bat assembleDebug\")",
+      "Bash(source ~/.nvm/nvm.sh)"
     ]
   }
 }
