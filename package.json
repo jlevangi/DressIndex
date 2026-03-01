@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:pwa": "vite build && npx cap sync",
-    "preview": "vite preview"
+    "ensure:deps": "node scripts/ensure-node-modules.mjs",
+    "dev": "npm run ensure:deps && vite",
+    "build": "npm run ensure:deps && vite build",
+    "build:pwa": "npm run ensure:deps && vite build && npx cap sync",
+    "preview": "npm run ensure:deps && vite preview"
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",

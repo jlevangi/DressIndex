@@ -210,7 +210,7 @@ export default function SurveyCard({
           Help improve DressIndex!
         </div>
         <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 14, lineHeight: 1.5 }}>
-          Could you answer four quick questions about what you actually wore?
+          Would you answer four quick questions to improve our recommendations?
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button

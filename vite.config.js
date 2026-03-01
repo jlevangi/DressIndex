@@ -1,12 +1,20 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import os from 'node:os'
+import path from 'node:path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
   const allowedHosts = env.VITE_ALLOWED_HOSTS
     ? env.VITE_ALLOWED_HOSTS.split(',').map(h => h.trim())
     : []
+  const cacheDir = path.join(
+    os.tmpdir(),
+    'vite-cache',
+    'dressindex',
+    `${process.platform}-${process.arch}`,
+  )
 
   return {
     plugins: [
@@ -53,6 +61,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    cacheDir,
     server: {
       host: true,
       allowedHosts,

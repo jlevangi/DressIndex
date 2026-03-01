@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-if [ ! -d "node_modules" ]; then
-  echo "Installing dependencies..."
-  npm install
-fi
+npm run ensure:deps
 
 npx vite --host --open
