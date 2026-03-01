@@ -5,7 +5,6 @@ export const PRESET_LOCATIONS = [
   { label: "Orlando", lat: 28.5383, lng: -81.3792, name: "Orlando, FL" },
   { label: "Miami", lat: 25.7617, lng: -80.1918, name: "Miami, FL" },
   { label: "Tampa", lat: 27.9506, lng: -82.4572, name: "Tampa, FL" },
-  { label: "Cincinnati", lat: 39.1031, lng: -84.5120, name: "Cincinnati, OH" },
 ];
 
 export const ONBOARDING_QUESTIONS = [
