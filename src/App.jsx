@@ -80,14 +80,16 @@ export default function ClothingAlgo() {
   const [showAdjPopup, setShowAdjPopup] = useState(false);
 
   const {
-    homeLocation, lat, lng, locationName,
+    homeLocation, lat, lng, locationName, locationSource,
     showSettings, setShowSettings,
-    locations,
-    handleGeolocate, handleSaveHome, selectLocation,
+    savedLocations,
+    handleGeolocate, handleSaveHome,
+    selectHomeLocation, selectLocation,
+    selectTemporaryLocation, saveCustomLocation, removeSavedLocation,
   } = useLocation(defaultLocPref);
 
   const {
-    weatherData, setWeatherData,
+    weatherData,
     loading, error, setError, lastFetch,
     fetchWeather,
     sunsetTime, tomorrowSunsetTime, currentData,
@@ -271,14 +273,21 @@ export default function ClothingAlgo() {
             {/* ── Location bar ── */}
             <LocationBar
               locationName={locationName}
+              locationSource={locationSource}
+              lat={lat}
+              lng={lng}
+              homeLocation={homeLocation}
               lastFetch={lastFetch}
               loading={loading}
-              locations={locations}
+              savedLocations={savedLocations}
               onRefresh={() => fetchWeather(apiKey, lat, lng)}
-              onReset={() => { setApiKey(""); setWeatherData(null); setKeyInput(""); }}
               onSettings={() => setShowSettings(true)}
               onGeolocate={() => handleGeolocate(setError)}
+              onSelectHomeLocation={selectHomeLocation}
               onSelectLocation={selectLocation}
+              onSelectTemporaryLocation={selectTemporaryLocation}
+              onSaveCustomLocation={saveCustomLocation}
+              onRemoveSavedLocation={removeSavedLocation}
             />
 
             {error && (

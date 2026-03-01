@@ -1,3 +1,5 @@
+const DRIZZLE_INTENSITY = 0.01;
+
 export function getWindMod(speed, baseTemp) {
   if (speed <= 10) return 0;
   let raw;
@@ -16,11 +18,11 @@ export function getSkyMod(cloudCover) {
 }
 
 export function getPrecipMod(intensity, probability = 0) {
-  if ((!intensity || intensity < 0.01) && probability <= 0.5) return 0;
+  if ((!intensity || intensity < DRIZZLE_INTENSITY) && probability <= 0.5) return 0;
 
   let base = 0;
   if (intensity >= 0.1)       base = -4;
-  else if (intensity >= 0.01) base = -2;
+  else if (intensity >= DRIZZLE_INTENSITY) base = -2;
 
   // High probability amplifies the effect (sustained rain feels worse)
   if (probability > 0.5) base -= 2;
@@ -35,7 +37,9 @@ export function getUvMod(uvIndex) {
   return 4;
 }
 
-export function dewPointMod(dp) {
+export function dewPointMod(dp, precipIntensity = 0, precipProbability = 0) {
+  const isAtLeastDrizzle = precipIntensity >= DRIZZLE_INTENSITY || precipProbability > 0.5;
+  if (isAtLeastDrizzle) return 0;
   if (dp >= 65) return 3;
   if (dp >= 60) return 2;
   if (dp >= 55) return 1;
@@ -48,7 +52,7 @@ export function computeEffective(data, personalAdj) {
   const sMod = getSkyMod(data.cloudCover || 0);
   const pMod = getPrecipMod(data.precipIntensity, data.precipProbability);
   const uMod = getUvMod(data.uvIndex);
-  const dMod = dewPointMod(data.dewPoint || 50);
+  const dMod = dewPointMod(data.dewPoint || 50, data.precipIntensity || 0, data.precipProbability || 0);
   const total = wMod + sMod + pMod + uMod + dMod + personalAdj;
   return {
     base: baseTemp,
