@@ -80,7 +80,7 @@ export default function ClothingAlgo() {
   const [showAdjPopup, setShowAdjPopup] = useState(false);
 
   const {
-    homeLocation, lat, lng, locationName, locationSource,
+    homeLocation, lat, lng, locationName, locationSource, locating,
     showSettings, setShowSettings,
     savedLocations,
     handleGeolocate, handleSaveHome,
@@ -274,6 +274,7 @@ export default function ClothingAlgo() {
             <LocationBar
               locationName={locationName}
               locationSource={locationSource}
+              locating={locating}
               lat={lat}
               lng={lng}
               homeLocation={homeLocation}

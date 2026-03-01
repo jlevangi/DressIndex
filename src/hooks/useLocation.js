@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { DEFAULT_HOME, PRESET_LOCATIONS } from "../constants.js";
 import { reverseGeocode } from "../geocode.js";
 
@@ -89,11 +89,15 @@ export default function useLocation(defaultLocationPref) {
   const [lng, setLng] = useState(null);
   const [locationName, setLocationName] = useState(null);
   const [locationSource, setLocationSource] = useState(null); // "gps" | "named"
+  const [locating, setLocating] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const geoRequestId = useRef(0);
 
   const applyLocation = (loc) => {
     const normalized = normalizeLocation(loc);
     if (!normalized) return false;
+    geoRequestId.current += 1; // invalidate any in-flight GPS request
+    setLocating(false);
     setLat(normalized.lat);
     setLng(normalized.lng);
     setLocationName(normalized.name);
@@ -185,15 +189,31 @@ export default function useLocation(defaultLocationPref) {
   }, [defaultLocationPref]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleGeolocate = (setError) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          applyGpsLocation(pos.coords.latitude, pos.coords.longitude);
-        },
-        () => setError("Geolocation denied."),
-        { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 }
-      );
-    }
+    if (!navigator.geolocation) return;
+    const prevName = locationName;
+    const prevSource = locationSource;
+    setError("");
+    setLocating(true);
+    setLocationName("Locating...");
+    setLocationSource("gps");
+    geoRequestId.current += 1;
+    const requestId = geoRequestId.current;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (geoRequestId.current !== requestId) return;
+        setLocating(false);
+        setError("");
+        applyGpsLocation(pos.coords.latitude, pos.coords.longitude);
+      },
+      () => {
+        if (geoRequestId.current !== requestId) return;
+        setLocating(false);
+        setLocationName(prevName);
+        setLocationSource(prevSource);
+        setError("Unable to get location. Please check your browser permissions.");
+      },
+      { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 }
+    );
   };
 
   const handleSaveHome = (home) => {
@@ -240,7 +260,7 @@ export default function useLocation(defaultLocationPref) {
   };
 
   return {
-    homeLocation, lat, lng, locationName, locationSource,
+    homeLocation, lat, lng, locationName, locationSource, locating,
     showSettings, setShowSettings,
     savedLocations,
     handleGeolocate, handleSaveHome,

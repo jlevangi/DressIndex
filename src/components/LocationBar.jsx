@@ -12,6 +12,7 @@ function isMatchingCoords(currentLat, currentLng, loc) {
 export default function LocationBar({
   locationName,
   locationSource,
+  locating,
   lat,
   lng,
   homeLocation,
@@ -123,7 +124,10 @@ export default function LocationBar({
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
             <circle cx="12" cy="9" r="2.5" />
           </svg>
-          <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
+          <span style={{
+            fontSize: 12, color: locating ? "var(--text-dim)" : "var(--text-secondary)", fontWeight: 600,
+            animation: locating ? "pulse 1.5s ease-in-out infinite" : "none",
+          }}>
             {locationName || "\u2014"}
           </span>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -139,20 +143,30 @@ export default function LocationBar({
           }}>
             {/* Current Location (GPS) */}
             <button
-              onClick={() => { onGeolocate(); closeDropdown(); }}
+              onClick={() => { if (!locating) onGeolocate(); closeDropdown(); }}
               style={{
                 display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left",
                 padding: "9px 14px", fontSize: 11, fontFamily: "inherit",
-                background: isGpsActive ? "rgba(249,115,22,0.12)" : "transparent",
-                color: isGpsActive ? "#f97316" : "var(--text-muted)",
-                border: "none", borderBottom: "1px solid var(--border)", cursor: "pointer",
+                background: isGpsActive || locating ? "rgba(249,115,22,0.12)" : "transparent",
+                color: isGpsActive || locating ? "#f97316" : "var(--text-muted)",
+                border: "none", borderBottom: "1px solid var(--border)",
+                cursor: locating ? "default" : "pointer",
+                opacity: locating ? 0.7 : 1,
               }}
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                <circle cx="12" cy="9" r="2.5" />
-              </svg>
-              <span style={{ fontWeight: isGpsActive ? 700 : 500 }}>Current Location</span>
+              {locating ? (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: "spin 1s linear infinite" }}>
+                  <path d="M12 2a10 10 0 0 1 10 10" />
+                </svg>
+              ) : (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+              )}
+              <span style={{ fontWeight: isGpsActive || locating ? 700 : 500 }}>
+                {locating ? "Locating..." : "Current Location"}
+              </span>
             </button>
 
             {/* Home */}
